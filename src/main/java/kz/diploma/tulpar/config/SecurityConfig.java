@@ -45,6 +45,8 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 // Swagger UI & OpenAPI spec
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                // Static admin UI (auth is handled client-side via Firebase Web SDK)
+                .requestMatchers("/admin-ui/**").permitAll()
                 // exercises — any authenticated user
                 .requestMatchers(HttpMethod.GET, "/exercises", "/exercises/**").authenticated()
                 // progress submission — any authenticated user
