@@ -10,9 +10,9 @@ services:
     environment:
       POSTGRES_DB: tulpar
       POSTGRES_USER: tulpar
-      POSTGRES_PASSWORD: tulpar_secret
+      POSTGRES_PASSWORD: tulpar
     ports:
-      - "5432:5432"
+      - "5445:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

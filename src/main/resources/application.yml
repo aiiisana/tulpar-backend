@@ -4,9 +4,9 @@ spring:
 
   # ─── DataSource ─────────────────────────────────────────────────────────────
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:tulpar}
+    url: jdbc:postgresql://${DB_HOST:localhost}:5445/${DB_NAME:tulpar}
     username: ${DB_USER:tulpar}
-    password: ${DB_PASSWORD:tulpar_secret}
+    password: ${DB_PASSWORD:tulpar}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -73,7 +73,7 @@ management:
 # ─── Firebase ───────────────────────────────────────────────────────────────
 firebase:
   service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:firebase-service-account.json}
-  project-id: ${FIREBASE_PROJECT_ID:your-firebase-project-id}
+  project-id: ${FIREBASE_PROJECT_ID:tulpar-19a6c}
 
 # ─── MinIO ──────────────────────────────────────────────────────────────────
 minio:
