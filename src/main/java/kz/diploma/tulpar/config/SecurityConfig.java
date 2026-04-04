@@ -12,6 +12,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
  * Stateless JWT/Firebase security configuration.
@@ -37,6 +42,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -47,17 +53,40 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 // Static admin UI (auth is handled client-side via Firebase Web SDK)
                 .requestMatchers("/admin-ui/**").permitAll()
+                // Public read-only content (cached, no sensitive data)
+                .requestMatchers(HttpMethod.GET,
+                        "/flashcards/**", "/articles/**", "/grammar/**",
+                        "/daily-challenge", "/conversation-club", "/settings").permitAll()
                 // exercises — any authenticated user
                 .requestMatchers(HttpMethod.GET, "/exercises", "/exercises/**").authenticated()
                 // progress submission — any authenticated user
                 .requestMatchers(HttpMethod.POST, "/progress").authenticated()
                 // admin panel — ADMIN or CONTENT_MANAGER
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "CONTENT_MANAGER")
+                // authenticated user features
+                .requestMatchers("/onboarding/**", "/profile/**", "/stats/**",
+                        "/chat/**", "/notifications/**", "/courses/**", "/lessons/**").authenticated()
                 // catch-all — must be authenticated
                 .anyRequest().authenticated()
             )
             .addFilterBefore(firebaseTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        // Flutter mobile apps don't need CORS, but web clients and Swagger UI do.
+        // In production replace "*" with your actual frontend origin(s).
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        config.setAllowCredentials(false);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

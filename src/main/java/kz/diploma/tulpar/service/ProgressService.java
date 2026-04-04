@@ -30,6 +30,7 @@ public class ProgressService {
     private final UserProgressRepository progressRepository;
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
+    private final StreakService streakService;
 
     /**
      * Records or updates a user's attempt on an exercise.
@@ -62,6 +63,11 @@ public class ProgressService {
         }
 
         UserProgress saved = progressRepository.save(progress);
+
+        if (correct) {
+            streakService.recordActivity(userId);
+        }
+
         return toResponse(saved, correct);
     }
 

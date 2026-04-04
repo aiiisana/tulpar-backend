@@ -83,6 +83,13 @@ minio:
   bucket-name: ${MINIO_BUCKET:tulpar-media}
   presigned-url-expiry: 3600      # seconds — how long presigned GET URLs are valid
 
+# ─── AI / OpenAI ─────────────────────────────────────────────────────────────
+ai:
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    base-url: https://api.openai.com
+    model: gpt-4o-mini
+
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging:
   level:

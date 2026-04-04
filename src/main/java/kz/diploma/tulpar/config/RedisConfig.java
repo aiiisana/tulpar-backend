@@ -50,10 +50,19 @@ public class RedisConfig {
                         .fromSerializer(jsonSerializer))
                 .disableCachingNullValues();
 
-        Map<String, RedisCacheConfiguration> perCacheConfig = Map.of(
-                "exercises",       defaultConfig.entryTtl(Duration.ofMinutes(10)),
-                "exercise-detail", defaultConfig.entryTtl(Duration.ofMinutes(10)),
-                "user-progress",   defaultConfig.entryTtl(Duration.ofMinutes(2))
+        Map<String, RedisCacheConfiguration> perCacheConfig = Map.ofEntries(
+                Map.entry("exercises",           defaultConfig.entryTtl(Duration.ofMinutes(10))),
+                Map.entry("exercise-detail",     defaultConfig.entryTtl(Duration.ofMinutes(10))),
+                Map.entry("user-progress",       defaultConfig.entryTtl(Duration.ofMinutes(2))),
+                Map.entry("courses",             defaultConfig.entryTtl(Duration.ofMinutes(30))),
+                Map.entry("course-levels",       defaultConfig.entryTtl(Duration.ofMinutes(30))),
+                Map.entry("flashcards",          defaultConfig.entryTtl(Duration.ofMinutes(60))),
+                Map.entry("grammar-rules",       defaultConfig.entryTtl(Duration.ofMinutes(60))),
+                Map.entry("grammar-rule-detail", defaultConfig.entryTtl(Duration.ofMinutes(60))),
+                Map.entry("article-detail",      defaultConfig.entryTtl(Duration.ofMinutes(30))),
+                Map.entry("articles",            defaultConfig.entryTtl(Duration.ofMinutes(15))),
+                Map.entry("daily-challenge",     defaultConfig.entryTtl(Duration.ofMinutes(60))),
+                Map.entry("user-profile",        defaultConfig.entryTtl(Duration.ofMinutes(10)))
         );
 
         return RedisCacheManager.builder(factory)

@@ -1,6 +1,8 @@
 package kz.diploma.tulpar.domain.entity;
 
 import jakarta.persistence.*;
+import kz.diploma.tulpar.domain.enums.DailyGoal;
+import kz.diploma.tulpar.domain.enums.DifficultyLevel;
 import kz.diploma.tulpar.domain.enums.UserRole;
 import lombok.*;
 
@@ -30,6 +32,28 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 32)
     private UserRole role;
+
+    @Column(name = "username", length = 100)
+    private String username;
+
+    @Column(name = "avatar_url", length = 1024)
+    private String avatarUrl;
+
+    @Column(name = "notifications_enabled", nullable = false)
+    @Builder.Default
+    private boolean notificationsEnabled = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "level", length = 32)
+    private DifficultyLevel level;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "daily_goal", length = 32)
+    private DailyGoal dailyGoal;
+
+    @Column(name = "onboarding_completed", nullable = false)
+    @Builder.Default
+    private boolean onboardingCompleted = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
