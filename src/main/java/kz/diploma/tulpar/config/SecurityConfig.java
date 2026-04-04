@@ -43,6 +43,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // public health check
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                // Swagger UI & OpenAPI spec
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 // exercises — any authenticated user
                 .requestMatchers(HttpMethod.GET, "/exercises", "/exercises/**").authenticated()
                 // progress submission — any authenticated user
