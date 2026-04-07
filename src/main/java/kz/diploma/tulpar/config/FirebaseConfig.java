@@ -16,7 +16,6 @@ import org.springframework.core.io.Resource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -57,25 +56,23 @@ public class FirebaseConfig {
     }
 
     private InputStream resolveServiceAccount() throws IOException {
-        // 1. Check env var FIREBASE_SERVICE_ACCOUNT_JSON (base64-encoded JSON) — used on Render
-        String jsonBase64 = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
-        if (jsonBase64 != null && !jsonBase64.isBlank()) {
+        String jsonEnv = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
+        if (jsonEnv != null && !jsonEnv.isBlank()) {
             log.info("Loading Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON env var");
-            // Render may URL-encode the value (+→%2B, /→%2F), decode it first
-            String cleaned = URLDecoder.decode(jsonBase64.trim(), StandardCharsets.UTF_8);
-            byte[] decoded = Base64.getMimeDecoder().decode(cleaned);
-            return new ByteArrayInputStream(decoded);
+            String trimmed = jsonEnv.trim();
+            byte[] jsonBytes = trimmed.startsWith("{")
+                    ? trimmed.getBytes(StandardCharsets.UTF_8)
+                    : Base64.getMimeDecoder().decode(trimmed);
+            return new ByteArrayInputStream(jsonBytes);
         }
 
         String path = firebaseProperties.getServiceAccountPath();
 
-        // 2. Try classpath first (useful for local dev with the file in src/main/resources)
         Resource classpath = new ClassPathResource(path);
         if (classpath.exists()) {
             return classpath.getInputStream();
         }
 
-        // 3. Fall back to file-system path (for production Docker volumes / secrets)
         Resource fileSystem = new FileSystemResource(path);
         if (fileSystem.exists()) {
             return fileSystem.getInputStream();
