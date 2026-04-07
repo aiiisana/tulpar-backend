@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5445/tulpar
+    username: tulpar
+    password: tulpar
+
+  jpa:
+    show-sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: redis_secret
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+firebase:
+  service-account-path: firebase-service-account.json
+  project-id: tulpar-19a6c
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: minio_admin
+  secret-key: minio_secret
+  bucket-name: tulpar-media
+
+logging:
+  level:
+    root: INFO
+    kz.diploma.tulpar: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
