@@ -2,12 +2,14 @@ package kz.diploma.tulpar.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-@Data @Builder
+@Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class DailyChallengeResponse {
     private UUID id;
     private LocalDate challengeDate;

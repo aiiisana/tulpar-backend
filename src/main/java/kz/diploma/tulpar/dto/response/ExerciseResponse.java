@@ -4,6 +4,8 @@ import kz.diploma.tulpar.domain.enums.DifficultyLevel;
 import kz.diploma.tulpar.domain.enums.ExerciseType;
 import lombok.Builder;
 import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.List;
@@ -15,7 +17,7 @@ import java.util.UUID;
  * This avoids polymorphic JSON complexity on the client side.
  */
 @Data
-@Builder
+@Builder @NoArgsConstructor @AllArgsConstructor
 public class ExerciseResponse {
 
     private UUID id;

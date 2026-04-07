@@ -2,9 +2,11 @@ package kz.diploma.tulpar.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Data
-@Builder
+@Builder @NoArgsConstructor @AllArgsConstructor
 public class UserProgressSummaryResponse {
 
     private String userId;

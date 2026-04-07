@@ -2,6 +2,8 @@ package kz.diploma.tulpar.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -10,7 +12,7 @@ import java.util.List;
  * Generic paginated response wrapper that hides Spring's Page internals from the API surface.
  */
 @Data
-@Builder
+@Builder @NoArgsConstructor @AllArgsConstructor
 public class PageResponse<T> {
 
     private List<T> content;
