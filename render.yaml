@@ -1,0 +1,54 @@
+services:
+  - type: web
+    name: tulpar
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/actuator/health
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: tulpar-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: tulpar-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: tulpar-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: tulpar-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: tulpar-db
+          property: password
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        value: "6379"
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        value: tulpar-19a6c
+      - key: MINIO_ENDPOINT
+        sync: false
+      - key: MINIO_ACCESS_KEY
+        sync: false
+      - key: MINIO_SECRET_KEY
+        sync: false
+      - key: MINIO_BUCKET
+        value: tulpar-media
+      - key: OPENAI_API_KEY
+        sync: false
+
+databases:
+  - name: tulpar-db
+    plan: free
+    databaseName: tulpar
+    user: tulpar

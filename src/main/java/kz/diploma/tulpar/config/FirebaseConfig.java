@@ -13,8 +13,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 
 /**
  * Initialises the Firebase Admin SDK once at startup.
@@ -53,22 +55,30 @@ public class FirebaseConfig {
     }
 
     private InputStream resolveServiceAccount() throws IOException {
+        // 1. Check env var FIREBASE_SERVICE_ACCOUNT_JSON (base64-encoded JSON) — used on Render
+        String jsonBase64 = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
+        if (jsonBase64 != null && !jsonBase64.isBlank()) {
+            log.info("Loading Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON env var");
+            byte[] decoded = Base64.getDecoder().decode(jsonBase64.trim());
+            return new ByteArrayInputStream(decoded);
+        }
+
         String path = firebaseProperties.getServiceAccountPath();
 
-        // Try classpath first (useful for local dev with the file in src/main/resources)
+        // 2. Try classpath first (useful for local dev with the file in src/main/resources)
         Resource classpath = new ClassPathResource(path);
         if (classpath.exists()) {
             return classpath.getInputStream();
         }
 
-        // Fall back to file-system path (for production Docker volumes / secrets)
+        // 3. Fall back to file-system path (for production Docker volumes / secrets)
         Resource fileSystem = new FileSystemResource(path);
         if (fileSystem.exists()) {
             return fileSystem.getInputStream();
         }
 
         throw new IllegalStateException(
-                "Firebase service account not found at: " + path +
-                " (checked classpath and file system)");
+                "Firebase service account not found. Set FIREBASE_SERVICE_ACCOUNT_JSON env var " +
+                "or place the file at: " + path);
     }
 }
