@@ -16,6 +16,8 @@ import org.springframework.core.io.Resource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
@@ -59,7 +61,9 @@ public class FirebaseConfig {
         String jsonBase64 = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
         if (jsonBase64 != null && !jsonBase64.isBlank()) {
             log.info("Loading Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON env var");
-            byte[] decoded = Base64.getDecoder().decode(jsonBase64.trim());
+            // Render may URL-encode the value (+→%2B, /→%2F), decode it first
+            String cleaned = URLDecoder.decode(jsonBase64.trim(), StandardCharsets.UTF_8);
+            byte[] decoded = Base64.getMimeDecoder().decode(cleaned);
             return new ByteArrayInputStream(decoded);
         }
 
