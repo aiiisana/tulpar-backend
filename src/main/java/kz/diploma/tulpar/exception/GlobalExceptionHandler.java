@@ -44,11 +44,7 @@ public class GlobalExceptionHandler {
                         (a, b) -> a
                 ));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.<Map<String, String>>builder()
-                        .success(false)
-                        .data(errors)
-                        .error("Validation failed")
-                        .build());
+                .body(new ApiResponse<>(false, errors, "Validation failed"));
     }
 
     @ExceptionHandler(Exception.class)
