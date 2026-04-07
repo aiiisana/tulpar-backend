@@ -4,6 +4,7 @@ import kz.diploma.tulpar.config.properties.AiProperties;
 import kz.diploma.tulpar.domain.entity.ChatMessage;
 import kz.diploma.tulpar.domain.enums.MessageRole;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -26,8 +27,16 @@ public class OpenAiService implements AiService {
 
     public OpenAiService(AiProperties properties) {
         this.properties = properties;
+
+        // 30 s connect + 60 s read — prevents the thread from hanging indefinitely
+        // when OpenAI is slow or unreachable.
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(30_000);
+        factory.setReadTimeout(60_000);
+
         this.restClient = RestClient.builder()
                 .baseUrl(properties.getBaseUrl())
+                .requestFactory(factory)
                 .defaultHeader("Authorization", "Bearer " + properties.getApiKey())
                 .defaultHeader("Content-Type", "application/json")
                 .build();
