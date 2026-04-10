@@ -30,6 +30,10 @@ minio:
   secret-key: minio_secret
   bucket-name: tulpar-media
 
+ai:
+  openai:
+    api-key:
+
 logging:
   level:
     root: INFO

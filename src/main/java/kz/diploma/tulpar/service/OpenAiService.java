@@ -18,9 +18,9 @@ public class OpenAiService implements AiService {
 
     private static final String SYSTEM_PROMPT =
             "You are a helpful Kazakh language tutor. Help users learn the Kazakh language " +
-            "through explanations, examples, grammar tips, and vocabulary practice. " +
-            "Respond in the language the user writes in (Kazakh, Russian, or English). " +
-            "Be encouraging and patient.";
+                    "through explanations, examples, grammar tips, and vocabulary practice. " +
+                    "Respond in the language the user writes in (Kazakh, Russian, or English). " +
+                    "Be encouraging and patient.";
 
     private final RestClient restClient;
     private final AiProperties properties;
@@ -66,21 +66,33 @@ public class OpenAiService implements AiService {
         );
 
         try {
-            @SuppressWarnings("unchecked")
+            log.info("➡️ Sending request to AI...");
+
             Map<String, Object> response = restClient.post()
                     .uri("/v1/chat/completions")
                     .body(requestBody)
                     .retrieve()
                     .body(Map.class);
 
-            @SuppressWarnings("unchecked")
+            log.info("📦 AI response: {}", response);
+
+            if (response == null || !response.containsKey("choices")) {
+                return "Ошибка AI (нет choices)";
+            }
+
             List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
-            @SuppressWarnings("unchecked")
+
+            if (choices.isEmpty()) {
+                return "Ошибка AI (пустой ответ)";
+            }
+
             Map<String, String> message = (Map<String, String>) choices.get(0).get("message");
+
             return message.get("content");
+
         } catch (Exception e) {
-            log.error("OpenAI API call failed", e);
-            return "Кешіріңіз, қазіргі уақытта жауап бере алмаймын. Кейінірек көріңіз.";
+            log.error("❌ OpenAI API call failed", e);
+            return "Кешіріңіз, AI уақытша жұмыс істемейді";
         }
     }
 }

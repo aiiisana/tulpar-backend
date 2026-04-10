@@ -98,6 +98,18 @@ public class StreakService {
         userStatsRepository.save(stats);
     }
 
+    /**
+     * Records activity AND awards XP in a single transaction to avoid
+     * the double-load of UserStats that would occur if called separately.
+     */
+    @Transactional
+    public void recordActivityAndAddXp(String userId, int xp) {
+        recordActivity(userId);
+        // At this point stats are already loaded in the persistence context;
+        // addXp will reuse the managed entity via first-level cache.
+        addXp(userId, xp);
+    }
+
     private UserStats getOrCreateStats(String userId) {
         return userStatsRepository.findById(userId).orElseGet(() -> {
             User user = userRepository.getReferenceById(userId);

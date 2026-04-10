@@ -25,16 +25,23 @@ public class ChatController {
     private final ChatService chatService;
 
     @Operation(summary = "Send a message to the AI tutor",
-               description = "Sends a message and returns the AI assistant's response. Conversation history is stored.")
+            description = "Sends a message and returns the AI assistant's response. Conversation history is stored.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "AI response returned"),
-        @ApiResponse(responseCode = "400", description = "Empty message")
+            @ApiResponse(responseCode = "200", description = "AI response returned"),
+            @ApiResponse(responseCode = "400", description = "Empty message")
     })
     @PostMapping("/message")
     public ResponseEntity<ChatMessageResponse> sendMessage(
-            @Parameter(hidden = true) @AuthenticationPrincipal UserPrincipal principal,
-            @Valid @RequestBody SendMessageRequest req) {
-        return ResponseEntity.ok(chatService.sendMessage(principal.getUid(), req.getMessage()));
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestBody SendMessageRequest req) {
+
+        if (principal == null) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        return ResponseEntity.ok(
+                chatService.sendMessage(principal.getUid(), req.getMessage())
+        );
     }
 
     @Operation(summary = "Get chat history", description = "Returns paginated conversation history, newest first.")

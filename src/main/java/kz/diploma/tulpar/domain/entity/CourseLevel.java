@@ -1,6 +1,7 @@
 package kz.diploma.tulpar.domain.entity;
 
 import jakarta.persistence.*;
+import kz.diploma.tulpar.domain.enums.DifficultyLevel;
 import lombok.*;
 
 import java.util.UUID;
@@ -23,4 +24,8 @@ public class CourseLevel {
 
     @Column(name = "order_index", nullable = false)
     private int orderIndex;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "difficulty_level", length = 32)
+    private DifficultyLevel difficultyLevel;
 }

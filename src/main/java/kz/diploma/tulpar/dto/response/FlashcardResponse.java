@@ -7,7 +7,10 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
-@Data @Builder @NoArgsConstructor @AllArgsConstructor
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class FlashcardResponse {
     private UUID id;
     private String wordRu;

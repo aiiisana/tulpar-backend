@@ -19,7 +19,7 @@ public class DailyChallengeService {
 
     private final DailyChallengeRepository repository;
 
-    @Cacheable("daily-challenge")
+    @Cacheable("daily-challenge-v2")
     @Transactional(readOnly = true)
     public DailyChallengeResponse getForToday() {
         return repository.findByChallengeDate(LocalDate.now())
@@ -27,7 +27,7 @@ public class DailyChallengeService {
                 .orElseThrow(() -> new ResourceNotFoundException("No daily challenge available for today"));
     }
 
-    @CacheEvict(value = "daily-challenge", allEntries = true)
+    @CacheEvict(value = "daily-challenge-v2", allEntries = true)
     @Transactional
     public DailyChallengeResponse create(CreateDailyChallengeRequest req) {
         DailyChallenge saved = repository.save(DailyChallenge.builder()
@@ -45,6 +45,8 @@ public class DailyChallengeService {
                 .challengeDate(c.getChallengeDate())
                 .letters(c.getLetters())
                 .imageUrls(c.getImageUrls())
+                .wordLength(c.getCorrectWord() != null ? c.getCorrectWord().length() : 0)
+                .correctWord(c.getCorrectWord())
                 .build();
     }
 }

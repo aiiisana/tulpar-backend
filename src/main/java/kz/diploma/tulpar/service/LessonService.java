@@ -3,6 +3,8 @@ package kz.diploma.tulpar.service;
 import kz.diploma.tulpar.domain.entity.Course;
 import kz.diploma.tulpar.domain.entity.CourseLevel;
 import kz.diploma.tulpar.domain.entity.Lesson;
+import kz.diploma.tulpar.domain.entity.User;
+import kz.diploma.tulpar.domain.enums.DifficultyLevel;
 import kz.diploma.tulpar.domain.enums.ProgressStatus;
 import kz.diploma.tulpar.dto.request.CreateCourseLevelRequest;
 import kz.diploma.tulpar.dto.request.CreateCourseRequest;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -29,6 +32,7 @@ public class LessonService {
     private final LessonRepository lessonRepository;
     private final LessonExerciseRepository lessonExerciseRepository;
     private final UserProgressRepository userProgressRepository;
+    private final UserRepository userRepository;
     private final ExerciseService exerciseService;
 
     @Cacheable("courses")
@@ -44,13 +48,28 @@ public class LessonService {
                 .toList();
     }
 
-    @Cacheable(value = "course-levels", key = "#courseId")
     @Transactional(readOnly = true)
     public List<CourseLevelResponse> getCourseLevels(UUID courseId, String userId) {
         if (!courseRepository.existsById(courseId)) {
             throw ResourceNotFoundException.of("Course", courseId);
         }
-        return levelRepository.findAllByCourseIdOrderByOrderIndexAsc(courseId).stream()
+
+        // If user has a language level set, show only that level's lessons.
+        // Otherwise fall back to showing all levels (e.g. admin / not onboarded yet).
+        User user = userRepository.findById(userId).orElse(null);
+        DifficultyLevel userLevel = user != null ? user.getLevel() : null;
+
+        List<CourseLevel> levels;
+        if (userLevel != null) {
+            levels = levelRepository
+                    .findByCourseIdAndDifficultyLevel(courseId, userLevel)
+                    .map(List::of)
+                    .orElseGet(() -> levelRepository.findAllByCourseIdOrderByOrderIndexAsc(courseId));
+        } else {
+            levels = levelRepository.findAllByCourseIdOrderByOrderIndexAsc(courseId);
+        }
+
+        return levels.stream()
                 .map(lvl -> {
                     List<LessonResponse> lessons = lessonRepository
                             .findAllByLevelIdOrderByOrderIndexAsc(lvl.getId()).stream()
@@ -71,9 +90,15 @@ public class LessonService {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> ResourceNotFoundException.of("Lesson", lessonId));
 
+        // IMPORTANT: use the scalar-ID projection so that no base Exercise proxy
+        // is placed in the Hibernate L1-cache before the subtypes are loaded.
+        // Accessing le.getExercise() first would put an Exercise (base) proxy into
+        // the L1-cache; a subsequent findById() would return that proxy, and the
+        // pattern-matching switch in toResponse() would hit the `default` branch,
+        // leaving `options` / `shuffledWords` null.
         List<ExerciseResponse> exercises = lessonExerciseRepository
-                .findAllByLessonIdOrderByOrderIndexAsc(lessonId).stream()
-                .map(le -> exerciseService.findById(le.getExercise().getId()))
+                .findExerciseIdsByLessonIdOrdered(lessonId).stream()
+                .map(exerciseService::findById)
                 .toList();
 
         return LessonResponse.builder()
@@ -82,6 +107,7 @@ public class LessonService {
                 .orderIndex(lesson.getOrderIndex())
                 .xpReward(lesson.getXpReward())
                 .unlocked(isUnlocked(lesson, userId))
+                .completed(isCompleted(lesson, userId))
                 .exercises(exercises)
                 .build();
     }
@@ -93,7 +119,19 @@ public class LessonService {
                 .orderIndex(lesson.getOrderIndex())
                 .xpReward(lesson.getXpReward())
                 .unlocked(isUnlocked(lesson, userId))
+                .completed(isCompleted(lesson, userId))
                 .build();
+    }
+
+    private boolean isCompleted(Lesson lesson, String userId) {
+        List<UUID> exerciseIds = lessonExerciseRepository
+                .findExerciseIdsByLessonIdOrdered(lesson.getId());
+        if (exerciseIds.isEmpty()) return false;
+        return exerciseIds.stream()
+                .allMatch(exId -> userProgressRepository
+                        .findByUserIdAndExerciseId(userId, exId)
+                        .map(p -> p.getStatus() == ProgressStatus.COMPLETED)
+                        .orElse(false));
     }
 
     // ── Admin CRUD ────────────────────────────────────────────────────────────
@@ -168,7 +206,7 @@ public class LessonService {
                 .title(saved.getTitle())
                 .orderIndex(saved.getOrderIndex())
                 .xpReward(saved.getXpReward())
-                .unlocked(saved.getOrderIndex() == 0)
+                .unlocked(true) // newly created lesson — caller decides placement
                 .build();
     }
 
@@ -183,28 +221,31 @@ public class LessonService {
 
     /**
      * First lesson in a level is always unlocked.
+     * "First" = no lesson with a smaller orderIndex exists in the same level.
      * Subsequent lessons require all exercises of the previous lesson to be COMPLETED.
      */
     private boolean isUnlocked(Lesson lesson, String userId) {
-        if (lesson.getOrderIndex() == 0) return true;
-
-        return lessonRepository
+        // Find the lesson immediately before this one in the same level
+        Optional<Lesson> prevOpt = lessonRepository
                 .findFirstByLevelIdAndOrderIndexLessThanOrderByOrderIndexDesc(
-                        lesson.getLevel().getId(), lesson.getOrderIndex())
-                .map(prev -> {
-                    List<UUID> exerciseIds = lessonExerciseRepository
-                            .findAllByLessonIdOrderByOrderIndexAsc(prev.getId()).stream()
-                            .map(le -> le.getExercise().getId())
-                            .toList();
-                    if (exerciseIds.isEmpty()) return true;
-                    long completed = exerciseIds.stream()
-                            .filter(exId -> userProgressRepository
-                                    .findByUserIdAndExerciseId(userId, exId)
-                                    .map(p -> p.getStatus() == ProgressStatus.COMPLETED)
-                                    .orElse(false))
-                            .count();
-                    return completed == exerciseIds.size();
-                })
-                .orElse(true);
+                        lesson.getLevel().getId(), lesson.getOrderIndex());
+
+        // No previous lesson → this IS the first lesson → always unlocked
+        if (prevOpt.isEmpty()) return true;
+
+        Lesson prev = prevOpt.get();
+        List<UUID> exerciseIds = lessonExerciseRepository
+                .findExerciseIdsByLessonIdOrdered(prev.getId());
+
+        if (exerciseIds.isEmpty()) return true;
+
+        long completed = exerciseIds.stream()
+                .filter(exId -> userProgressRepository
+                        .findByUserIdAndExerciseId(userId, exId)
+                        .map(p -> p.getStatus() == ProgressStatus.COMPLETED)
+                        .orElse(false))
+                .count();
+
+        return completed == exerciseIds.size();
     }
 }

@@ -15,5 +15,6 @@ public class DailyChallengeResponse {
     private LocalDate challengeDate;
     private List<String> letters;
     private List<String> imageUrls;
-    // correctWord intentionally omitted from response
+    private int wordLength;
+    private String correctWord; // sent to client for local answer check
 }

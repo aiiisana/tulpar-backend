@@ -65,7 +65,7 @@ public class ProgressService {
         UserProgress saved = progressRepository.save(progress);
 
         if (correct) {
-            streakService.recordActivity(userId);
+            streakService.recordActivityAndAddXp(userId, 5);
         }
 
         return toResponse(saved, correct);

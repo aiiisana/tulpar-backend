@@ -5,8 +5,10 @@ import lombok.Data;
 
 @Data
 public class CreateFlashcardRequest {
-    @NotBlank private String wordRu;
-    @NotBlank private String wordKz;
+    @NotBlank
+    private String wordRu;
+    @NotBlank
+    private String wordKz;
     private String transcription;
     private String exampleSentence;
 }

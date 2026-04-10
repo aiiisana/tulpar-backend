@@ -15,5 +15,6 @@ public class LessonResponse {
     private int orderIndex;
     private int xpReward;
     private boolean unlocked;
+    private boolean completed;               // true when all exercises are COMPLETED
     private List<ExerciseResponse> exercises;  // populated only in detail view
 }

@@ -9,6 +9,6 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "ai.openai")
 public class AiProperties {
     private String apiKey;
-    private String baseUrl = "https://api.openai.com";
-    private String model = "gpt-4o-mini";
+    private String baseUrl = "https://api.perplexity.ai";
+    private String model = "sonar-small-chat";
 }
