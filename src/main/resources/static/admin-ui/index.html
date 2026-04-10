@@ -494,7 +494,10 @@
     measurementId: "G-TKFVGBVC2L"
   };
 
-  const API = '/api'; // Spring Boot context-path
+  // Auto-detect API base from the URL the panel is served from.
+  // If served at  /api/admin-ui/index.html  → API = '/api'
+  // If served at  /admin-ui/index.html      → API = ''
+  const API = window.location.pathname.split('/admin-ui')[0];
 
   // ─── Firebase init ────────────────────────────────────────────────────────
   const auth = getAuth(initializeApp(FIREBASE_CONFIG));
@@ -514,7 +517,21 @@
       headers: { 'Authorization': `Bearer ${t}`, ...(opts.headers || {}) },
     });
 
-    const json = res.status === 204 ? null : await res.json();
+    if (res.status === 204) return null;
+
+    // Read body as text first so we can give a clear error if the server
+    // returns HTML (e.g. a reverse-proxy 404 page) instead of JSON.
+    const text = await res.text();
+    let json = null;
+    try { json = JSON.parse(text); }
+    catch {
+      // Non-JSON response (HTML error page, etc.)
+      if (!res.ok) {
+        const snippet = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+        throw new Error(`HTTP ${res.status} — сервер вернул не JSON.\n` +
+          `Убедитесь, что бэкенд запущен и адрес правильный.\nURL: ${API + path}\n${snippet}`);
+      }
+    }
 
     if (!res.ok || json?.success === false) {
       const msg = json?.error || json?.message || res.statusText;

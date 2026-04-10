@@ -19,6 +19,8 @@ public class ProgressResponse {
     private ProgressStatus status;
     private int attempts;
     private boolean correct;
+    /** XP awarded for this submission (0 when wrong, positive when correct). */
+    private int xpEarned;
     private Instant completedAt;
     private Instant lastAttemptedAt;
 }

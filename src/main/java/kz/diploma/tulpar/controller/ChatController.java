@@ -35,8 +35,11 @@ public class ChatController {
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody SendMessageRequest req) {
 
+        // principal is guaranteed non-null by SecurityConfig (.authenticated()),
+        // but guard defensively to avoid a misleading 500 if the filter chain
+        // ever skips setting the context.
         if (principal == null) {
-            throw new RuntimeException("User not authenticated");
+            return ResponseEntity.status(401).build();
         }
 
         return ResponseEntity.ok(

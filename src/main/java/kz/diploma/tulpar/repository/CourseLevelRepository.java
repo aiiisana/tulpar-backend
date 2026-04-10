@@ -13,4 +13,13 @@ import java.util.UUID;
 public interface CourseLevelRepository extends JpaRepository<CourseLevel, UUID> {
     List<CourseLevel> findAllByCourseIdOrderByOrderIndexAsc(UUID courseId);
     Optional<CourseLevel> findByCourseIdAndDifficultyLevel(UUID courseId, DifficultyLevel difficultyLevel);
+
+    /**
+     * Finds the CourseLevel immediately before {@code orderIndex} in the same course,
+     * ordered by descending order_index.  Used by unlock logic to determine whether
+     * all lessons in the preceding level have been completed before opening the first
+     * lesson of the current level.
+     */
+    Optional<CourseLevel> findFirstByCourseIdAndOrderIndexLessThanOrderByOrderIndexDesc(
+            UUID courseId, int orderIndex);
 }

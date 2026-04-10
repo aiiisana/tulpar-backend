@@ -1,8 +1,5 @@
 package kz.diploma.tulpar.service;
 
-import kz.diploma.tulpar.domain.entity.Exercise;
-import kz.diploma.tulpar.domain.entity.User;
-import kz.diploma.tulpar.domain.entity.UserProgress;
 import kz.diploma.tulpar.domain.entity.*;
 import kz.diploma.tulpar.domain.enums.ProgressStatus;
 import kz.diploma.tulpar.dto.request.SubmitProgressRequest;
@@ -14,6 +11,7 @@ import kz.diploma.tulpar.repository.ExerciseRepository;
 import kz.diploma.tulpar.repository.UserProgressRepository;
 import kz.diploma.tulpar.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProgressService {
@@ -64,11 +63,13 @@ public class ProgressService {
 
         UserProgress saved = progressRepository.save(progress);
 
+        int xpEarned = 0;
         if (correct) {
-            streakService.recordActivityAndAddXp(userId, 5);
+            xpEarned = 5;
+            streakService.recordActivityAndAddXp(userId, xpEarned);
         }
 
-        return toResponse(saved, correct);
+        return toResponse(saved, correct, xpEarned);
     }
 
     @Cacheable(value = "user-progress", key = "#userId")
@@ -105,11 +106,18 @@ public class ProgressService {
             case ImageExercise i      -> i.getCorrectAnswer().equalsIgnoreCase(userAnswer.trim());
             case SentenceBuilderExercise s ->
                     s.getCorrectSentence().equalsIgnoreCase(userAnswer.trim());
-            default -> false;
+            default -> {
+                // AI_GENERATED and any future exercise types without a concrete entity class
+                // land here. Log a clear warning so developers know evaluation is skipped.
+                log.warn("evaluate(): unsupported exercise class '{}' (id={}). " +
+                         "Returning false. Implement a dedicated entity subclass to enable scoring.",
+                         exercise.getClass().getSimpleName(), exercise.getId());
+                yield false;
+            }
         };
     }
 
-    private ProgressResponse toResponse(UserProgress p, boolean correct) {
+    private ProgressResponse toResponse(UserProgress p, boolean correct, int xpEarned) {
         return ProgressResponse.builder()
                 .progressId(p.getId())
                 .exerciseId(p.getExercise().getId())
@@ -117,8 +125,14 @@ public class ProgressService {
                 .status(p.getStatus())
                 .attempts(p.getAttempts())
                 .correct(correct)
+                .xpEarned(xpEarned)
                 .completedAt(p.getCompletedAt())
                 .lastAttemptedAt(p.getLastAttemptedAt())
                 .build();
+    }
+
+    /** Overload used by findByUser() where XP is not re-calculated from history. */
+    private ProgressResponse toResponse(UserProgress p, boolean correct) {
+        return toResponse(p, correct, 0);
     }
 }

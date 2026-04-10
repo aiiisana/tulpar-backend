@@ -48,41 +48,60 @@ public class LessonService {
                 .toList();
     }
 
+    /**
+     * Returns the lesson map for the current user's difficulty group.
+     *
+     * <p>Design invariant (Duolingo-style):
+     * <ul>
+     *   <li>Each {@link DifficultyLevel} is a <em>completely independent progression path</em>.</li>
+     *   <li>A user sees <em>only</em> the lessons that belong to their selected difficulty.</li>
+     *   <li>There is no cross-difficulty unlocking — ELEMENTARY does not "unlock after BEGINNER".</li>
+     *   <li>If the user has not selected a difficulty yet (level == null), an empty list is returned
+     *       so the frontend can prompt them to complete onboarding.</li>
+     * </ul>
+     *
+     * <p>Root-cause note: the previous implementation returned ALL difficulty groups when no level
+     * was set and used a flat index for the entire list. Because {@link #isUnlocked} searches for
+     * the previous lesson <em>within the same {@link CourseLevel}</em>, the first lesson of every
+     * group always had no predecessor → always appeared unlocked, producing the "Level 6, 11, 16
+     * randomly unlocked" symptom.
+     */
     @Transactional(readOnly = true)
     public List<CourseLevelResponse> getCourseLevels(UUID courseId, String userId) {
         if (!courseRepository.existsById(courseId)) {
             throw ResourceNotFoundException.of("Course", courseId);
         }
 
-        // If user has a language level set, show only that level's lessons.
-        // Otherwise fall back to showing all levels (e.g. admin / not onboarded yet).
         User user = userRepository.findById(userId).orElse(null);
         DifficultyLevel userLevel = user != null ? user.getLevel() : null;
 
-        List<CourseLevel> levels;
-        if (userLevel != null) {
-            levels = levelRepository
-                    .findByCourseIdAndDifficultyLevel(courseId, userLevel)
-                    .map(List::of)
-                    .orElseGet(() -> levelRepository.findAllByCourseIdOrderByOrderIndexAsc(courseId));
-        } else {
-            levels = levelRepository.findAllByCourseIdOrderByOrderIndexAsc(courseId);
+        // No difficulty selected → return empty. Frontend must redirect to level-selection.
+        if (userLevel == null) {
+            return List.of();
         }
 
-        return levels.stream()
-                .map(lvl -> {
-                    List<LessonResponse> lessons = lessonRepository
-                            .findAllByLevelIdOrderByOrderIndexAsc(lvl.getId()).stream()
-                            .map(lesson -> toLessonSummary(lesson, userId))
-                            .toList();
-                    return CourseLevelResponse.builder()
-                            .id(lvl.getId())
-                            .title(lvl.getTitle())
-                            .orderIndex(lvl.getOrderIndex())
-                            .lessons(lessons)
-                            .build();
-                })
+        // Fetch the ONE CourseLevel that belongs to the user's difficulty.
+        Optional<CourseLevel> levelOpt =
+                levelRepository.findByCourseIdAndDifficultyLevel(courseId, userLevel);
+
+        if (levelOpt.isEmpty()) {
+            // No content seeded for this difficulty yet — return empty.
+            return List.of();
+        }
+
+        CourseLevel level = levelOpt.get();
+        List<LessonResponse> lessons = lessonRepository
+                .findAllByLevelIdOrderByOrderIndexAsc(level.getId()).stream()
+                .map(lesson -> toLessonSummary(lesson, userId))
                 .toList();
+
+        return List.of(CourseLevelResponse.builder()
+                .id(level.getId())
+                .title(level.getTitle())
+                .orderIndex(level.getOrderIndex())
+                .difficultyLevel(level.getDifficultyLevel())
+                .lessons(lessons)
+                .build());
     }
 
     @Transactional(readOnly = true)
@@ -171,6 +190,7 @@ public class LessonService {
                 .course(course)
                 .title(req.getTitle())
                 .orderIndex(req.getOrderIndex())
+                .difficultyLevel(req.getDifficultyLevel())   // must be set or level won't be visible to filtered users
                 .build());
         return CourseLevelResponse.builder()
                 .id(saved.getId())
@@ -220,32 +240,70 @@ public class LessonService {
     // ── Unlock logic ──────────────────────────────────────────────────────────
 
     /**
-     * First lesson in a level is always unlocked.
-     * "First" = no lesson with a smaller orderIndex exists in the same level.
-     * Subsequent lessons require all exercises of the previous lesson to be COMPLETED.
+     * Determines whether a lesson is available for the user to attempt.
+     *
+     * <h3>Rules (in evaluation order):</h3>
+     * <ol>
+     *   <li>If there is a previous lesson in the same {@link CourseLevel} (same difficulty group),
+     *       the user must have completed all of its exercises first.</li>
+     *   <li>If this is the first lesson in its {@link CourseLevel}, check whether there is a
+     *       preceding {@link CourseLevel} in the same course (by {@code orderIndex}).  If one
+     *       exists, every lesson in that preceding level must be fully completed before this
+     *       level's first lesson becomes available.  This ensures sequential difficulty
+     *       progression: ELEMENTARY unlocks only after all BEGINNER lessons are done, etc.</li>
+     *   <li>If neither condition applies (no previous lesson, no previous level), the lesson is
+     *       the absolute starting point → always unlocked.</li>
+     * </ol>
      */
     private boolean isUnlocked(Lesson lesson, String userId) {
-        // Find the lesson immediately before this one in the same level
-        Optional<Lesson> prevOpt = lessonRepository
+        CourseLevel currentLevel = lesson.getLevel();
+
+        // ── Case 1: check the previous lesson WITHIN the same level ─────────
+        Optional<Lesson> prevInLevelOpt = lessonRepository
                 .findFirstByLevelIdAndOrderIndexLessThanOrderByOrderIndexDesc(
-                        lesson.getLevel().getId(), lesson.getOrderIndex());
+                        currentLevel.getId(), lesson.getOrderIndex());
 
-        // No previous lesson → this IS the first lesson → always unlocked
-        if (prevOpt.isEmpty()) return true;
+        if (prevInLevelOpt.isPresent()) {
+            // There IS a predecessor in the same level — check it is completed.
+            return allExercisesCompleted(prevInLevelOpt.get().getId(), userId);
+        }
 
-        Lesson prev = prevOpt.get();
-        List<UUID> exerciseIds = lessonExerciseRepository
-                .findExerciseIdsByLessonIdOrdered(prev.getId());
+        // ── Case 2: this is the FIRST lesson of its level ────────────────────
+        // Check whether the previous CourseLevel (by orderIndex) has been fully completed.
+        Optional<CourseLevel> prevLevelOpt = levelRepository
+                .findFirstByCourseIdAndOrderIndexLessThanOrderByOrderIndexDesc(
+                        currentLevel.getCourse().getId(), currentLevel.getOrderIndex());
 
-        if (exerciseIds.isEmpty()) return true;
+        if (prevLevelOpt.isEmpty()) {
+            // No prior level exists — this is the very first lesson in the course → unlocked.
+            return true;
+        }
 
-        long completed = exerciseIds.stream()
-                .filter(exId -> userProgressRepository
+        // Every lesson in the preceding level must be fully completed.
+        List<Lesson> prevLevelLessons = lessonRepository
+                .findAllByLevelIdOrderByOrderIndexAsc(prevLevelOpt.get().getId());
+
+        if (prevLevelLessons.isEmpty()) {
+            // Previous level has no lessons (not yet seeded) → treat as completed.
+            return true;
+        }
+
+        return prevLevelLessons.stream()
+                .allMatch(l -> allExercisesCompleted(l.getId(), userId));
+    }
+
+    /**
+     * Returns {@code true} when every exercise in the given lesson has a
+     * {@link ProgressStatus#COMPLETED} record for {@code userId}.
+     * A lesson with no exercises is treated as trivially complete.
+     */
+    private boolean allExercisesCompleted(UUID lessonId, String userId) {
+        List<UUID> ids = lessonExerciseRepository.findExerciseIdsByLessonIdOrdered(lessonId);
+        if (ids.isEmpty()) return true;
+        return ids.stream()
+                .allMatch(exId -> userProgressRepository
                         .findByUserIdAndExerciseId(userId, exId)
                         .map(p -> p.getStatus() == ProgressStatus.COMPLETED)
-                        .orElse(false))
-                .count();
-
-        return completed == exerciseIds.size();
+                        .orElse(false));
     }
 }
