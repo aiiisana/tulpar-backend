@@ -33,14 +33,7 @@ public class ChatController {
     @PostMapping("/message")
     public ResponseEntity<ChatMessageResponse> sendMessage(
             @AuthenticationPrincipal UserPrincipal principal,
-            @RequestBody SendMessageRequest req) {
-
-        // principal is guaranteed non-null by SecurityConfig (.authenticated()),
-        // but guard defensively to avoid a misleading 500 if the filter chain
-        // ever skips setting the context.
-        if (principal == null) {
-            return ResponseEntity.status(401).build();
-        }
+            @Valid @RequestBody SendMessageRequest req) {
 
         return ResponseEntity.ok(
                 chatService.sendMessage(principal.getUid(), req.getMessage())

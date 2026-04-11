@@ -18,14 +18,15 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Handles all MinIO (S3-compatible) operations.
+ * Handles all S3-compatible storage operations (MinIO / Cloudflare R2).
  *
  * Upload flow:
  *   1. Receive MultipartFile from admin controller
  *   2. Generate a unique object key (media-type prefix + UUID + original extension)
- *   3. Stream file to MinIO
+ *   3. Stream file to the storage backend
  *   4. Persist metadata to the media_files table
- *   5. Return a presigned GET URL valid for {@code presignedUrlExpiry} seconds
+ *   5. Return either a public URL (if {@code minio.public-url} is configured)
+ *      or a presigned GET URL valid for {@code minio.presigned-url-expiry} seconds
  */
 @Slf4j
 @Service
@@ -55,7 +56,7 @@ public class MinioService {
             throw new MediaUploadException("Failed to upload file to MinIO: " + originalFilename, ex);
         }
 
-        String presignedUrl = generatePresignedUrl(bucket, objectKey);
+        String presignedUrl = resolveFileUrl(bucket, objectKey);
 
         MediaFile mediaFile = MediaFile.builder()
                 .mediaType(mediaType)
@@ -80,6 +81,24 @@ public class MinioService {
                 .sizeBytes(saved.getSizeBytes())
                 .uploadedAt(saved.getUploadedAt())
                 .build();
+    }
+
+    /**
+     * Returns the best URL for accessing the object.
+     * <ul>
+     *   <li>If {@code minio.public-url} is set (Cloudflare R2 public bucket or custom domain),
+     *       returns a stable public URL — no expiry, no signing overhead.</li>
+     *   <li>Otherwise falls back to a presigned GET URL valid for
+     *       {@code minio.presigned-url-expiry} seconds.</li>
+     * </ul>
+     */
+    public String resolveFileUrl(String bucket, String objectKey) {
+        String publicBase = minioProperties.getPublicUrl();
+        if (publicBase != null && !publicBase.isBlank()) {
+            // e.g. https://pub-xxxx.r2.dev/audio/uuid.mp3
+            return publicBase.stripTrailing() + "/" + objectKey;
+        }
+        return generatePresignedUrl(bucket, objectKey);
     }
 
     public String generatePresignedUrl(String bucket, String objectKey) {

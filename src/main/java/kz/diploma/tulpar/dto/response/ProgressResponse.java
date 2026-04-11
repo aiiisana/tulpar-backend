@@ -19,6 +19,13 @@ public class ProgressResponse {
     private ProgressStatus status;
     private int attempts;
     private boolean correct;
+    /**
+     * The correct answer for this exercise — returned only after submission
+     * so the client cannot pre-fetch it before the user answers.
+     * Null for exercise types whose correct answer cannot be extracted
+     * (e.g. AI_GENERATED without a concrete entity subclass).
+     */
+    private String correctAnswer;
     /** XP awarded for this submission (0 when wrong, positive when correct). */
     private int xpEarned;
     private Instant completedAt;

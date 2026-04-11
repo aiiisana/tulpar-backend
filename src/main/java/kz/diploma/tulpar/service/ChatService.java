@@ -69,7 +69,7 @@ public class ChatService {
         log.info("[Chat] AI reply received ({} chars)", aiReply.length());
 
         // ── Tx 2: save assistant message + build response (commits immediately)
-        return new TransactionTemplate(txManager).execute(status -> {
+        ChatMessageResponse result = new TransactionTemplate(txManager).execute(status -> {
             User user = userRepository.getReferenceById(userId);
 
             ChatMessage saved = chatMessageRepository.save(
@@ -80,15 +80,18 @@ public class ChatService {
                             .build()
             );
 
-            // Read all fields while entity is still managed
-            Instant createdAt = saved.getCreatedAt();
             return ChatMessageResponse.builder()
                     .id(saved.getId())
                     .role(saved.getRole())
                     .content(saved.getContent())
-                    .createdAt(createdAt)
+                    .createdAt(saved.getCreatedAt())
                     .build();
         });
+
+        if (result == null) {
+            throw new IllegalStateException("Failed to save assistant message");
+        }
+        return result;
     }
 
     @Transactional(readOnly = true)

@@ -25,10 +25,12 @@ firebase:
   project-id: tulpar-19a6c
 
 minio:
-  endpoint: http://localhost:9000
-  access-key: minio_admin
-  secret-key: minio_secret
-  bucket-name: tulpar-media
+  endpoint: ${R2_ENDPOINT:https://c5ba9bd76f3a4f23ced42727fd962f34.r2.cloudflarestorage.com}
+  access-key: ${R2_ACCESS_KEY:d6a70fb71074ce11dd59a1fcadc84438}
+  secret-key: ${R2_SECRET_KEY:991538572ba0a91c084038e0a47ff413b45e2b819b0a422b776a4400870be72d}
+  bucket-name: ${R2_BUCKET:tulpar}
+  public-url: ${R2_PUBLIC_URL:https://c5ba9bd76f3a4f23ced42727fd962f34.r2.cloudflarestorage.com}
+  presigned-url-expiry: 3600
 
 ai:
   openai:

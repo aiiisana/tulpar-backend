@@ -69,7 +69,8 @@ public class ProgressService {
             streakService.recordActivityAndAddXp(userId, xpEarned);
         }
 
-        return toResponse(saved, correct, xpEarned);
+        String correctAnswer = extractCorrectAnswer(exercise);
+        return toResponse(saved, correct, xpEarned, correctAnswer);
     }
 
     @Cacheable(value = "user-progress", key = "#userId")
@@ -96,6 +97,30 @@ public class ProgressService {
                 .build();
     }
 
+    // ─── Correct answer extraction ────────────────────────────────────────────
+
+    /**
+     * Returns the canonical correct answer for an exercise so the client can
+     * display it in the feedback bar after a wrong submission.
+     *
+     * This is intentionally called only from {@link #submit} — the correct
+     * answer is never included in GET /exercises responses so users cannot
+     * peek before answering.
+     *
+     * Returns {@code null} for exercise types that have no deterministic
+     * correct answer (e.g. AI_GENERATED without a concrete entity subclass).
+     */
+    private String extractCorrectAnswer(Exercise exercise) {
+        return switch (exercise) {
+            case VocabularyExercise v       -> v.getCorrectAnswer();
+            case ListeningExercise  l       -> l.getCorrectAnswer();
+            case VideoExercise      v       -> v.getCorrectAnswer();
+            case ImageExercise      i       -> i.getCorrectAnswer();
+            case SentenceBuilderExercise s  -> s.getCorrectSentence();
+            default                         -> null;
+        };
+    }
+
     // ─── Answer evaluation ───────────────────────────────────────────────────
 
     private boolean evaluate(Exercise exercise, String userAnswer) {
@@ -117,7 +142,13 @@ public class ProgressService {
         };
     }
 
-    private ProgressResponse toResponse(UserProgress p, boolean correct, int xpEarned) {
+    /**
+     * Full overload — used by {@link #submit} which knows XP and the correct answer.
+     * {@code correctAnswer} may be {@code null} for exercise types where it cannot
+     * be extracted (e.g. AI_GENERATED).
+     */
+    private ProgressResponse toResponse(UserProgress p, boolean correct,
+                                        int xpEarned, String correctAnswer) {
         return ProgressResponse.builder()
                 .progressId(p.getId())
                 .exerciseId(p.getExercise().getId())
@@ -125,14 +156,15 @@ public class ProgressService {
                 .status(p.getStatus())
                 .attempts(p.getAttempts())
                 .correct(correct)
+                .correctAnswer(correctAnswer)
                 .xpEarned(xpEarned)
                 .completedAt(p.getCompletedAt())
                 .lastAttemptedAt(p.getLastAttemptedAt())
                 .build();
     }
 
-    /** Overload used by findByUser() where XP is not re-calculated from history. */
+    /** Overload used by findByUser() — XP and correctAnswer not re-calculated from history. */
     private ProgressResponse toResponse(UserProgress p, boolean correct) {
-        return toResponse(p, correct, 0);
+        return toResponse(p, correct, 0, null);
     }
 }
