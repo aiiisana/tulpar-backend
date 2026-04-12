@@ -29,7 +29,7 @@ minio:
   access-key: ${R2_ACCESS_KEY:d6a70fb71074ce11dd59a1fcadc84438}
   secret-key: ${R2_SECRET_KEY:991538572ba0a91c084038e0a47ff413b45e2b819b0a422b776a4400870be72d}
   bucket-name: ${R2_BUCKET:tulpar}
-  public-url: ${R2_PUBLIC_URL:https://c5ba9bd76f3a4f23ced42727fd962f34.r2.cloudflarestorage.com}
+  public-url: ${R2_PUBLIC_URL:https://pub-cfcd1f8d9d334d638e5c522acf05a60b.r2.dev}
   presigned-url-expiry: 3600
 
 ai:

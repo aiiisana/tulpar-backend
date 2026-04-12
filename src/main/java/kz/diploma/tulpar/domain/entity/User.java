@@ -39,6 +39,10 @@ public class User {
     @Column(name = "avatar_url", length = 1024)
     private String avatarUrl;
 
+    /** R2 object key for the user's avatar (set when uploaded via the backend). */
+    @Column(name = "avatar_object_key", length = 1024)
+    private String avatarObjectKey;
+
     @Column(name = "notifications_enabled", nullable = false)
     @Builder.Default
     private boolean notificationsEnabled = true;
