@@ -10,5 +10,5 @@ import org.springframework.stereotype.Component;
 public class AiProperties {
     private String apiKey;
     private String baseUrl = "https://api.perplexity.ai";
-    private String model = "sonar-small-chat";
+    private String model = "sonar";
 }

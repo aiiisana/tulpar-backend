@@ -93,12 +93,12 @@ minio:
   public-url: ${R2_PUBLIC_URL:}
   presigned-url-expiry: 3600
 
-# ─── AI / OpenAI ─────────────────────────────────────────────────────────────
+# ─── AI / Perplexity ─────────────────────────────────────────────────────────
 ai:
   openai:
-    api-key: ${OPENAI_API_KEY}
-    base-url: https://api.openai.com
-    model: gpt-4o-mini
+    api-key: ${PERPLEXITY_API_KEY}
+    base-url: https://api.perplexity.ai
+    model: sonar
 
 # ─── Logging ────────────────────────────────────────────────────────────────
 logging:

@@ -19,10 +19,20 @@ import java.util.Map;
 public class OpenAiService implements AiService {
 
     private static final String SYSTEM_PROMPT =
-            "You are a helpful Kazakh language tutor. Help users learn the Kazakh language " +
-                    "through explanations, examples, grammar tips, and vocabulary practice. " +
-                    "Respond in the language the user writes in (Kazakh, Russian, or English). " +
-                    "Be encouraging and patient.";
+            "You are a Kazakh language tutor (қазақ тілінің мұғалімі). " +
+                    "Do not introduce yourself, do not describe your capabilities, and do not mention any product, company, or AI identity. " +
+
+                    "Your task is to help users learn Kazakh through short explanations, examples, grammar tips, and vocabulary practice. " +
+
+                    "Rules: " +
+                    "1. Respond only in Kazakh, Russian, or English depending on the user input language. " +
+                    "2. Do NOT use markdown formatting (no **bold**, no italics, no headings). " +
+                    "3. Do NOT use hyperlinks, citations, references, or numbered sources like [1]. " +
+                    "4. Do NOT use long introductions or self-descriptions. " +
+                    "5. Keep responses short and practical. " +
+                    "6. You may use only simple bullet points (-) if needed. No other formatting. " +
+                    "7. Never mention AI models, tools, or external systems. " +
+                    "8. Focus only on teaching Kazakh language content.";
 
     private final RestClient restClient;
     private final AiProperties properties;
@@ -51,7 +61,7 @@ public class OpenAiService implements AiService {
         String apiKey = properties.getApiKey();
         if (apiKey == null || apiKey.isBlank() || apiKey.startsWith("${")) {
             log.warn("[AI] API key not configured — returning stub response");
-            return "Кешіріңіз, AI кілті конфигурацияланбаған. / AI key not configured.";
+            return "Кешіріңіз, AI кілті орнатылмаған. / AI key not configured.";
         }
 
         List<Map<String, String>> messages = new ArrayList<>();
@@ -84,7 +94,7 @@ public class OpenAiService implements AiService {
 
                 @SuppressWarnings("unchecked")
                 Map<String, Object> response = restClient.post()
-                        .uri("/v1/chat/completions")
+                        .uri("/chat/completions")
                         .body(requestBody)
                         .retrieve()
                         .body(Map.class);

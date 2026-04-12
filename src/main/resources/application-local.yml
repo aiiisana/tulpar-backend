@@ -34,7 +34,9 @@ minio:
 
 ai:
   openai:
-    api-key:
+    api-key: ${PERPLEXITY_API_KEY:}
+    base-url: https://api.perplexity.ai
+    model: sonar
 
 logging:
   level:
