@@ -11,4 +11,5 @@ public class CreateFlashcardRequest {
     private String wordKz;
     private String transcription;
     private String exampleSentence;
+    private String audioUrl;
 }

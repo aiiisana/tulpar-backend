@@ -16,4 +16,7 @@ public interface UserRepository extends JpaRepository<User, String> {
     boolean existsByEmail(String email);
 
     List<User> findAllByRole(UserRole role);
+
+    /** All users who have a daily goal set AND have notifications enabled. */
+    List<User> findAllByDailyGoalIsNotNullAndNotificationsEnabledTrue();
 }

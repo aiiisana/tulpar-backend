@@ -4,9 +4,9 @@ spring:
 
   # ─── DataSource ─────────────────────────────────────────────────────────────
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://${DB_HOST:}:${DB_PORT:}/${DB_NAME:}
+    username: ${DB_USER:}
+    password: ${DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
@@ -19,7 +19,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: false
+    show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -36,12 +36,12 @@ spring:
   # ─── Redis ──────────────────────────────────────────────────────────────────
   data:
     redis:
-      host: ${REDIS_HOST}
+      host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD}
+      password: ${REDIS_PASSWORD:}
       timeout: 2000ms
       ssl:
-        enabled: ${REDIS_SSL:true}
+        enabled: ${REDIS_SSL:false}
 
   # ─── Cache ──────────────────────────────────────────────────────────────────
   cache:
@@ -75,7 +75,7 @@ management:
 # ─── Firebase ───────────────────────────────────────────────────────────────
 firebase:
   service-account-path: firebase-service-account.json
-  project-id: ${FIREBASE_PROJECT_ID}
+  project-id:
 
 # ─── Cloudflare R2 / S3-compatible storage ──────────────────────────────────
 # R2 endpoint format: https://<ACCOUNT_ID>.r2.cloudflarestorage.com
@@ -86,17 +86,17 @@ firebase:
 # Leave empty (or unset) to use presigned URLs (private bucket).
 #   Examples: https://pub-xxxx.r2.dev   or   https://media.yourdomain.com
 minio:
-  endpoint: ${R2_ENDPOINT}
-  access-key: ${R2_ACCESS_KEY}
-  secret-key: ${R2_SECRET_KEY}
-  bucket-name: ${R2_BUCKET:tulpar-media}
-  public-url: ${R2_PUBLIC_URL:}
+  endpoint: ${R2_ENDPOINT:https://c5ba9bd76f3a4f23ced42727fd962f34.r2.cloudflarestorage.com}
+  access-key: ${R2_ACCESS_KEY:}
+  secret-key: ${R2_SECRET_KEY:}
+  bucket-name: ${R2_BUCKET:tulpar}
+  public-url: ${R2_PUBLIC_URL:https://pub-cfcd1f8d9d334d638e5c522acf05a60b.r2.dev}
   presigned-url-expiry: 3600
 
 # ─── AI / Perplexity ─────────────────────────────────────────────────────────
 ai:
   openai:
-    api-key: ${PERPLEXITY_API_KEY}
+    api-key: ${PERPLEXITY_API_KEY:}
     base-url: https://api.perplexity.ai
     model: sonar
 
@@ -104,6 +104,21 @@ ai:
 logging:
   level:
     root: INFO
-    kz.diploma.tulpar: INFO
-    org.flywaydb: INFO
-    org.hibernate.SQL: WARN
+    kz.diploma.tulpar: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

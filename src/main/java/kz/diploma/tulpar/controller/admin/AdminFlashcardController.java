@@ -11,6 +11,7 @@ import kz.diploma.tulpar.dto.request.CreateFlashcardRequest;
 import kz.diploma.tulpar.dto.response.FlashcardResponse;
 import kz.diploma.tulpar.service.FlashcardService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import java.util.UUID;
 public class AdminFlashcardController {
 
     private final FlashcardService flashcardService;
+    private final CacheManager cacheManager;
 
     @Operation(summary = "Create flashcard", description = "Adds a new vocabulary flashcard.")
     @ApiResponses({
@@ -48,6 +50,15 @@ public class AdminFlashcardController {
     public ResponseEntity<Void> deleteFlashcard(
             @Parameter(description = "Flashcard UUID", required = true) @PathVariable UUID id) {
         flashcardService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Evict flashcard cache", description = "Clears the Redis cache for flashcards. Use after bulk data changes.")
+    @ApiResponse(responseCode = "204", description = "Cache cleared")
+    @PostMapping("/cache/evict")
+    public ResponseEntity<Void> evictCache() {
+        var cache = cacheManager.getCache("flashcards");
+        if (cache != null) cache.clear();
         return ResponseEntity.noContent().build();
     }
 }

@@ -17,4 +17,5 @@ public class FlashcardResponse {
     private String wordKz;
     private String transcription;
     private String exampleSentence;
+    private String audioUrl;
 }

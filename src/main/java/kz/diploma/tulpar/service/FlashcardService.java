@@ -41,6 +41,7 @@ public class FlashcardService {
                 .wordKz(req.getWordKz())
                 .transcription(req.getTranscription())
                 .exampleSentence(req.getExampleSentence())
+                .audioUrl(req.getAudioUrl())
                 .build());
         return toResponse(saved);
     }
@@ -95,6 +96,7 @@ public class FlashcardService {
                 .wordKz(f.getWordKz())
                 .transcription(f.getTranscription())
                 .exampleSentence(f.getExampleSentence())
+                .audioUrl(f.getAudioUrl())
                 .build();
     }
 }

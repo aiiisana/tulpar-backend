@@ -27,6 +27,9 @@ public class Flashcard {
     @Column(name = "example_sentence", columnDefinition = "TEXT")
     private String exampleSentence;
 
+    @Column(name = "audio_url", columnDefinition = "TEXT")
+    private String audioUrl;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
