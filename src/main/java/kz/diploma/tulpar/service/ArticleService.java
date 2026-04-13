@@ -50,8 +50,11 @@ public class ArticleService {
     public ArticleResponse create(CreateArticleRequest req) {
         Article saved = articleRepository.save(Article.builder()
                 .title(req.getTitle())
+                .titleKz(req.getTitleKz())
                 .content(req.getContent())
+                .contentKz(req.getContentKz())
                 .difficultyLevel(req.getDifficultyLevel())
+                .imageUrl(req.getImageUrl())
                 .build());
         return toResponse(saved, true);
     }
@@ -72,7 +75,10 @@ public class ArticleService {
         return ArticleResponse.builder()
                 .id(a.getId())
                 .title(a.getTitle())
+                .titleKz(a.getTitleKz())
                 .content(includeContent ? a.getContent() : null)
+                .contentKz(includeContent ? a.getContentKz() : null)
+                .imageUrl(a.getImageUrl())
                 .difficultyLevel(a.getDifficultyLevel())
                 .createdAt(a.getCreatedAt())
                 .build();

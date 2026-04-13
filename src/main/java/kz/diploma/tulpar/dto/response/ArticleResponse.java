@@ -13,7 +13,10 @@ import java.util.UUID;
 public class ArticleResponse {
     private UUID id;
     private String title;
-    private String content;   // null in list responses
+    private String titleKz;
+    private String content;    // null in list responses
+    private String contentKz;  // null in list responses
+    private String imageUrl;
     private DifficultyLevel difficultyLevel;
     private Instant createdAt;
 }

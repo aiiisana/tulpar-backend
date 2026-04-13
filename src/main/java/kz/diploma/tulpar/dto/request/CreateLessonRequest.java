@@ -8,8 +8,10 @@ import java.util.UUID;
 
 @Data
 public class CreateLessonRequest {
-    @NotNull  private UUID levelId;
-    @NotBlank private String title;
+    @NotNull
+    private UUID levelId;
+    @NotBlank
+    private String title;
     private int orderIndex;
     private int xpReward = 10;
 }

@@ -9,8 +9,12 @@ import java.util.List;
 
 @Data
 public class CreateDailyChallengeRequest {
-    @NotNull  private LocalDate challengeDate;
-    @NotBlank private String correctWord;
-    @NotNull  private List<String> letters;
-    @NotNull  private List<String> imageUrls;
+    @NotNull
+    private LocalDate challengeDate;
+    @NotBlank
+    private String correctWord;
+    @NotNull
+    private List<String> letters;
+    @NotNull
+    private List<String> imageUrls;
 }

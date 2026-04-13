@@ -7,7 +7,9 @@ import lombok.Data;
 @Data
 public class AddSessionTimeRequest {
 
-    /** Number of seconds to add for the current session flush. */
+    /**
+     * Number of seconds to add for the current session flush.
+     */
     @NotNull
     @Min(1)
     private Integer seconds;

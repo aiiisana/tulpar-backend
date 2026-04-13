@@ -7,7 +7,9 @@ import java.util.List;
 
 @Data
 public class CreateGrammarRuleRequest {
-    @NotBlank private String title;
-    @NotBlank private String explanation;
+    @NotBlank
+    private String title;
+    @NotBlank
+    private String explanation;
     private List<String> examples;
 }

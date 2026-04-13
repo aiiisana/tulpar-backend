@@ -12,7 +12,9 @@ public class SubmitDailyChallengeRequest {
     @NotNull(message = "challengeId is required")
     private UUID challengeId;
 
-    /** The user's assembled answer (case-insensitive comparison on backend). */
+    /**
+     * The user's assembled answer (case-insensitive comparison on backend).
+     */
     @NotBlank(message = "answer must not be blank")
     private String answer;
 }

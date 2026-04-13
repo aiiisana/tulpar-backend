@@ -26,6 +26,15 @@ public class Article {
     @Column(name = "difficulty_level", nullable = false, length = 32)
     private DifficultyLevel difficultyLevel;
 
+    @Column(name = "title_kz", length = 500)
+    private String titleKz;
+
+    @Column(name = "content_kz", columnDefinition = "TEXT")
+    private String contentKz;
+
+    @Column(name = "image_url", length = 1000)
+    private String imageUrl;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

@@ -7,7 +7,13 @@ import lombok.Data;
 
 @Data
 public class CreateArticleRequest {
-    @NotBlank private String title;
-    @NotBlank private String content;
-    @NotNull  private DifficultyLevel difficultyLevel;
+    @NotBlank
+    private String title;
+    private String titleKz;
+    @NotBlank
+    private String content;
+    private String contentKz;
+    @NotNull
+    private DifficultyLevel difficultyLevel;
+    private String imageUrl;
 }
