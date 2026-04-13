@@ -14,4 +14,7 @@ public interface UserDailyActivityRepository extends JpaRepository<UserDailyActi
     Optional<UserDailyActivity> findByUserIdAndActivityDate(String userId, LocalDate date);
     List<UserDailyActivity> findAllByUserIdAndActivityDateBetweenOrderByActivityDateAsc(
             String userId, LocalDate from, LocalDate to);
+
+    /** True only if the user specifically completed the daily challenge on the given date. */
+    boolean existsByUserIdAndActivityDateAndChallengeCompletedTrue(String userId, LocalDate date);
 }

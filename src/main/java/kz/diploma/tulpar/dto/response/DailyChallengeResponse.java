@@ -17,4 +17,6 @@ public class DailyChallengeResponse {
     private List<String> imageUrls;
     private int wordLength;
     private String correctWord; // sent to client for local answer check
+    /** true if the authenticated user has already completed this challenge today */
+    private boolean completedByCurrentUser;
 }

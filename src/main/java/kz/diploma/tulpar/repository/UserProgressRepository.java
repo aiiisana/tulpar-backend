@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,4 +24,17 @@ public interface UserProgressRepository extends JpaRepository<UserProgress, UUID
     long countByUserIdAndStatus(@Param("userId") String userId, @Param("status") ProgressStatus status);
 
     boolean existsByUserIdAndExerciseId(String userId, UUID exerciseId);
+
+    /**
+     * Counts how many exercises from the given set have been COMPLETED by the user.
+     * Used by the 90 % unlock-threshold check.
+     */
+    @Query("SELECT COUNT(p) FROM UserProgress p " +
+           "WHERE p.user.id = :userId " +
+           "AND p.exercise.id IN :exerciseIds " +
+           "AND p.status = :status")
+    long countByUserIdAndExerciseIdInAndStatus(
+            @Param("userId")      String           userId,
+            @Param("exerciseIds") Collection<UUID> exerciseIds,
+            @Param("status")      ProgressStatus   status);
 }

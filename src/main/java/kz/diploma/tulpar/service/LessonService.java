@@ -143,14 +143,7 @@ public class LessonService {
     }
 
     private boolean isCompleted(Lesson lesson, String userId) {
-        List<UUID> exerciseIds = lessonExerciseRepository
-                .findExerciseIdsByLessonIdOrdered(lesson.getId());
-        if (exerciseIds.isEmpty()) return false;
-        return exerciseIds.stream()
-                .allMatch(exId -> userProgressRepository
-                        .findByUserIdAndExerciseId(userId, exId)
-                        .map(p -> p.getStatus() == ProgressStatus.COMPLETED)
-                        .orElse(false));
+        return hasPassedThreshold(lesson.getId(), userId);
     }
 
     // ── Admin CRUD ────────────────────────────────────────────────────────────
@@ -264,8 +257,8 @@ public class LessonService {
                         currentLevel.getId(), lesson.getOrderIndex());
 
         if (prevInLevelOpt.isPresent()) {
-            // There IS a predecessor in the same level — check it is completed.
-            return allExercisesCompleted(prevInLevelOpt.get().getId(), userId);
+            // There IS a predecessor in the same level — user must have passed ≥90 %.
+            return hasPassedThreshold(prevInLevelOpt.get().getId(), userId);
         }
 
         // ── Case 2: this is the FIRST lesson of its level ────────────────────
@@ -289,21 +282,32 @@ public class LessonService {
         }
 
         return prevLevelLessons.stream()
-                .allMatch(l -> allExercisesCompleted(l.getId(), userId));
+                .allMatch(l -> hasPassedThreshold(l.getId(), userId));
     }
 
     /**
-     * Returns {@code true} when every exercise in the given lesson has a
-     * {@link ProgressStatus#COMPLETED} record for {@code userId}.
-     * A lesson with no exercises is treated as trivially complete.
+     * Returns {@code true} when the user has correctly answered at least 90 % of
+     * the exercises in the given lesson (i.e. ≥ ⌈total × 0.9⌉ exercises are COMPLETED).
+     *
+     * <p>Examples:
+     * <ul>
+     *   <li>10 exercises → need 9 correct  (9/10 = 90 %)</li>
+     *   <li>5  exercises → need 5 correct  (⌈4.5⌉ = 5)</li>
+     *   <li>0  exercises → trivially true</li>
+     * </ul>
+     *
+     * <p>This single method is used both for the "lesson completed" badge and for
+     * the "next lesson unlocked" gate, so they always stay in sync.
      */
-    private boolean allExercisesCompleted(UUID lessonId, String userId) {
+    private boolean hasPassedThreshold(UUID lessonId, String userId) {
         List<UUID> ids = lessonExerciseRepository.findExerciseIdsByLessonIdOrdered(lessonId);
         if (ids.isEmpty()) return true;
-        return ids.stream()
-                .allMatch(exId -> userProgressRepository
-                        .findByUserIdAndExerciseId(userId, exId)
-                        .map(p -> p.getStatus() == ProgressStatus.COMPLETED)
-                        .orElse(false));
+
+        long total    = ids.size();
+        long required = (long) Math.ceil(total * 0.9);   // e.g. ⌈10*0.9⌉ = 9
+        long completed = userProgressRepository
+                .countByUserIdAndExerciseIdInAndStatus(userId, ids, ProgressStatus.COMPLETED);
+
+        return completed >= required;
     }
 }

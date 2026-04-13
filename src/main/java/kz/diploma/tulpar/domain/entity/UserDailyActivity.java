@@ -24,7 +24,13 @@ public class UserDailyActivity {
     @Column(name = "activity_date", nullable = false)
     private LocalDate activityDate;
 
+    /** True when the user submitted any activity (lesson, exercise) today. */
     @Column(name = "completed", nullable = false)
     @Builder.Default
     private boolean completed = false;
+
+    /** True ONLY when the user specifically completed the daily challenge today. */
+    @Column(name = "challenge_completed", nullable = false)
+    @Builder.Default
+    private boolean challengeCompleted = false;
 }

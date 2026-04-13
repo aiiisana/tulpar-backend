@@ -36,10 +36,6 @@ INSERT INTO lessons (id, level_id, title, order_index, xp_reward) VALUES
 
 -- ── Exercises ───────────────────────────────────────────────────────────────
 INSERT INTO exercises (id, exercise_type, difficulty_level, question, explanation) VALUES
-  ('d1cbf743-4ebd-4612-8fcc-87e2491cd83b', 'VOCABULARY', 'BEGINNER', 'Аударыңыз: ''А''', 'Тапсырманы орындаңыз'),
-  ('2c60dc63-425e-45a7-be7a-522dd9e5d49b', 'VOCABULARY', 'BEGINNER', 'Аударыңыз: ''Б''', 'Тапсырманы орындаңыз'),
-  ('dc7a0e76-32dd-4573-93d2-8c02c634e060', 'VOCABULARY', 'BEGINNER', 'Аударыңыз: ''Д''', 'Тапсырманы орындаңыз'),
-  ('c07e08e4-c825-4eb5-83c7-df05d333b440', 'VOCABULARY', 'BEGINNER', 'Аударыңыз: ''М''', 'Тапсырманы орындаңыз'),
   ('3594ab16-2141-4f97-9e24-89da062f6274', 'SENTENCE_BUILDER', 'BEGINNER', 'Сөйлемді құрыңыз: Бұл — алфавит', 'Тапсырманы орындаңыз'),
   ('503cd26d-820e-487e-96df-cdc463108720', 'SENTENCE_BUILDER', 'BEGINNER', 'Сөйлемді құрыңыз: Мен оқимын', 'Тапсырманы орындаңыз'),
   ('d0b34eb2-6212-49b0-812e-7ca0d7d8301c', 'SENTENCE_BUILDER', 'BEGINNER', 'Сөйлемді құрыңыз: Бұл әріп', 'Тапсырманы орындаңыз'),
@@ -238,10 +234,6 @@ INSERT INTO exercises (id, exercise_type, difficulty_level, question, explanatio
   ('b7dae27b-5156-464e-92d1-cd362dafac24', 'LISTENING', 'ADVANCED', 'Диалогты тыңдап, сұрақтың жауабын таңдаңыз', 'Тапсырманы орындаңыз');
 
 INSERT INTO vocabulary_exercises (exercise_id, word, translation, options, correct_answer) VALUES
-  ('d1cbf743-4ebd-4612-8fcc-87e2491cd83b', 'А', 'A (алфа)', '["A (алфа)","Б (бета)","В (вета)","Г (гамма)"]', 'A (алфа)'),
-  ('2c60dc63-425e-45a7-be7a-522dd9e5d49b', 'Б', 'B', '["A","B","C","D"]', 'B'),
-  ('dc7a0e76-32dd-4573-93d2-8c02c634e060', 'Д', 'D', '["D","E","F","G"]', 'D'),
-  ('c07e08e4-c825-4eb5-83c7-df05d333b440', 'М', 'M', '["K","L","M","N"]', 'M'),
   ('2aac454f-a2b1-464c-b79d-08913ac932a4', 'бір', 'один', '["один","два","три","четыре"]', 'один'),
   ('1ec6e347-4416-44de-acea-ec196a743568', 'екі', 'два', '["один","два","три","четыре"]', 'два'),
   ('aefa4afd-4ce6-4fc7-9193-c3108f9aa847', 'үш', 'три', '["один","два","три","четыре"]', 'три'),
@@ -446,11 +438,7 @@ INSERT INTO listening_exercises (exercise_id, audio_url, transcript, options, co
   ('b7dae27b-5156-464e-92d1-cd362dafac24', '/assets/audio/dialogue_agree.mp3', 'Иә, мен келісемін', '["Иә, мен келісемін","Жоқ, келіспеймін","Білмеймін","Мүмкін"]', 'Иә, мен келісемін');
 
 INSERT INTO lesson_exercises (id, lesson_id, exercise_id, order_index) VALUES
-  ('288c9cfb-f12c-4bd6-8003-2527dbc6e4cf', 'bd97e322-b609-4d54-b6e6-920256478014', 'd1cbf743-4ebd-4612-8fcc-87e2491cd83b', 0),
-  ('028583b8-230f-487d-b55d-272098bd936f', 'bd97e322-b609-4d54-b6e6-920256478014', '2c60dc63-425e-45a7-be7a-522dd9e5d49b', 1),
-  ('6b0b7ff9-fe40-405c-82f7-c3bbab6576a0', 'bd97e322-b609-4d54-b6e6-920256478014', 'dc7a0e76-32dd-4573-93d2-8c02c634e060', 2),
-  ('5eb35ecf-9e99-4a38-813a-324586e77761', 'bd97e322-b609-4d54-b6e6-920256478014', 'c07e08e4-c825-4eb5-83c7-df05d333b440', 3),
-  ('616262ce-4120-474d-88fa-52ffcdf632f2', 'bd97e322-b609-4d54-b6e6-920256478014', '3594ab16-2141-4f97-9e24-89da062f6274', 4),
+  ('616262ce-4120-474d-88fa-52ffcdf632f2', 'bd97e322-b609-4d54-b6e6-920256478014', '3594ab16-2141-4f97-9e24-89da062f6274', 0),
   ('749044f3-1054-4bc1-b2ad-c433547285fd', 'bd97e322-b609-4d54-b6e6-920256478014', '503cd26d-820e-487e-96df-cdc463108720', 5),
   ('21246fc3-4acc-46ef-952f-1220f7dd5926', 'bd97e322-b609-4d54-b6e6-920256478014', 'd0b34eb2-6212-49b0-812e-7ca0d7d8301c', 6),
   ('fbbd5d35-3404-4cfe-80b1-f877693c22be', 'bd97e322-b609-4d54-b6e6-920256478014', '014fee74-534d-48db-8dcb-680ebe105c32', 7),

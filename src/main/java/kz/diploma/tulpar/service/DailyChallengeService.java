@@ -1,15 +1,17 @@
 package kz.diploma.tulpar.service;
 
 import kz.diploma.tulpar.domain.entity.DailyChallenge;
+import kz.diploma.tulpar.domain.entity.UserDailyActivity;
+import kz.diploma.tulpar.domain.entity.User;
 import kz.diploma.tulpar.dto.request.CreateDailyChallengeRequest;
 import kz.diploma.tulpar.dto.response.DailyChallengeResponse;
 import kz.diploma.tulpar.dto.response.DailyChallengeSubmitResponse;
 import kz.diploma.tulpar.exception.ResourceNotFoundException;
 import kz.diploma.tulpar.repository.DailyChallengeRepository;
 import kz.diploma.tulpar.repository.UserDailyActivityRepository;
+import kz.diploma.tulpar.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,14 +26,28 @@ public class DailyChallengeService {
 
     private final DailyChallengeRepository repository;
     private final UserDailyActivityRepository activityRepository;
+    private final UserRepository userRepository;
     private final StreakService streakService;
 
-    @Cacheable("daily-challenge-v2")
+    /**
+     * Returns today's challenge. When {@code userId} is non-null (authenticated user),
+     * the response includes {@code completedByCurrentUser} so the client knows
+     * whether to show the "completed" screen without any local-cache tricks.
+     *
+     * @param userId Firebase UID of the caller, or {@code null} for anonymous access.
+     */
     @Transactional(readOnly = true)
-    public DailyChallengeResponse getForToday() {
-        return repository.findByChallengeDate(LocalDate.now())
-                .map(this::toResponse)
+    public DailyChallengeResponse getForToday(String userId) {
+        DailyChallenge challenge = repository.findByChallengeDate(LocalDate.now())
                 .orElseThrow(() -> new ResourceNotFoundException("No daily challenge available for today"));
+
+        // Use challenge_completed (not completed) — the latter is set for ANY
+        // activity (lessons, exercises), which would cause false positives.
+        boolean completedByCurrentUser = userId != null &&
+                activityRepository.existsByUserIdAndActivityDateAndChallengeCompletedTrue(
+                        userId, LocalDate.now());
+
+        return toResponse(challenge, completedByCurrentUser);
     }
 
     /**
@@ -48,17 +64,13 @@ public class DailyChallengeService {
 
         LocalDate today = LocalDate.now();
 
-        // Already earned XP today — idempotent, safe to call multiple times.
-        boolean alreadyDone = activityRepository
-                .findByUserIdAndActivityDate(userId, today)
-                .map(a -> a.isCompleted())
-                .orElse(false);
-
-        if (alreadyDone) {
+        // Already completed the challenge today — idempotent.
+        if (activityRepository.existsByUserIdAndActivityDateAndChallengeCompletedTrue(userId, today)) {
             return 0;
         }
 
         streakService.recordActivityAndAddXp(userId, CHALLENGE_XP);
+        markChallengeCompleted(userId, today);
         return CHALLENGE_XP;
     }
 
@@ -87,12 +99,11 @@ public class DailyChallengeService {
         if (correct) {
             LocalDate today = LocalDate.now();
             boolean alreadyDone = activityRepository
-                    .findByUserIdAndActivityDate(userId, today)
-                    .map(a -> a.isCompleted())
-                    .orElse(false);
+                    .existsByUserIdAndActivityDateAndChallengeCompletedTrue(userId, today);
 
             if (!alreadyDone) {
                 streakService.recordActivityAndAddXp(userId, CHALLENGE_XP);
+                markChallengeCompleted(userId, today);
                 xpAwarded = CHALLENGE_XP;
             }
         }
@@ -104,7 +115,6 @@ public class DailyChallengeService {
                 .build();
     }
 
-    @CacheEvict(value = "daily-challenge-v2", allEntries = true)
     @Transactional
     public DailyChallengeResponse create(CreateDailyChallengeRequest req) {
         DailyChallenge saved = repository.save(DailyChallenge.builder()
@@ -113,10 +123,28 @@ public class DailyChallengeService {
                 .letters(req.getLetters())
                 .imageUrls(req.getImageUrls())
                 .build());
-        return toResponse(saved);
+        return toResponse(saved, false);
     }
 
-    private DailyChallengeResponse toResponse(DailyChallenge c) {
+    /**
+     * Upserts today's UserDailyActivity and sets {@code challengeCompleted = true}.
+     * Called after a correct answer is confirmed. Idempotent.
+     */
+    private void markChallengeCompleted(String userId, LocalDate date) {
+        UserDailyActivity activity = activityRepository
+                .findByUserIdAndActivityDate(userId, date)
+                .orElseGet(() -> {
+                    User user = userRepository.getReferenceById(userId);
+                    return UserDailyActivity.builder()
+                            .user(user)
+                            .activityDate(date)
+                            .build();
+                });
+        activity.setChallengeCompleted(true);
+        activityRepository.save(activity);
+    }
+
+    private DailyChallengeResponse toResponse(DailyChallenge c, boolean completedByCurrentUser) {
         return DailyChallengeResponse.builder()
                 .id(c.getId())
                 .challengeDate(c.getChallengeDate())
@@ -124,6 +152,7 @@ public class DailyChallengeService {
                 .imageUrls(c.getImageUrls())
                 .wordLength(c.getCorrectWord() != null ? c.getCorrectWord().length() : 0)
                 .correctWord(c.getCorrectWord())
+                .completedByCurrentUser(completedByCurrentUser)
                 .build();
     }
 }

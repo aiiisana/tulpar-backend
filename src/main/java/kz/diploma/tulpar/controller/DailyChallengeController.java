@@ -33,8 +33,10 @@ public class DailyChallengeController {
         @ApiResponse(responseCode = "404", description = "No challenge for today", content = @Content)
     })
     @GetMapping
-    public ResponseEntity<DailyChallengeResponse> getToday() {
-        return ResponseEntity.ok(dailyChallengeService.getForToday());
+    public ResponseEntity<DailyChallengeResponse> getToday(
+            @AuthenticationPrincipal UserPrincipal principal) {
+        String userId = (principal != null) ? principal.getUid() : null;
+        return ResponseEntity.ok(dailyChallengeService.getForToday(userId));
     }
 
     @Operation(
