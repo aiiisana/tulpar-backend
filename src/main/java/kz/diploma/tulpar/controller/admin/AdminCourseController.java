@@ -7,7 +7,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kz.diploma.tulpar.dto.request.*;
+import kz.diploma.tulpar.dto.request.CreateCourseLevelRequest;
+import kz.diploma.tulpar.dto.request.CreateCourseRequest;
+import kz.diploma.tulpar.dto.request.CreateDailyChallengeRequest;
+import kz.diploma.tulpar.dto.request.CreateLessonRequest;
+import kz.diploma.tulpar.dto.request.UpdateCourseRequest;
+import kz.diploma.tulpar.dto.request.UpdateCourseLevelRequest;
+import kz.diploma.tulpar.dto.request.UpdateLessonRequest;
 import kz.diploma.tulpar.dto.response.*;
 import kz.diploma.tulpar.service.DailyChallengeService;
 import kz.diploma.tulpar.service.LessonService;
@@ -40,6 +46,19 @@ public class AdminCourseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(lessonService.createCourse(req));
     }
 
+    @Operation(summary = "Update course")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Course updated"),
+        @ApiResponse(responseCode = "404", description = "Course not found", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Insufficient role", content = @Content)
+    })
+    @PutMapping("/courses/{id}")
+    public ResponseEntity<CourseResponse> updateCourse(
+            @Parameter(description = "Course UUID", required = true) @PathVariable UUID id,
+            @RequestBody UpdateCourseRequest req) {
+        return ResponseEntity.ok(lessonService.updateCourse(id, req));
+    }
+
     @Operation(summary = "Delete course", description = "Permanently deletes a course and its child levels and lessons.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Course deleted"),
@@ -67,6 +86,19 @@ public class AdminCourseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(lessonService.createLevel(req));
     }
 
+    @Operation(summary = "Update course level")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Level updated"),
+        @ApiResponse(responseCode = "404", description = "Level not found", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Insufficient role", content = @Content)
+    })
+    @PutMapping("/course-levels/{id}")
+    public ResponseEntity<CourseLevelResponse> updateLevel(
+            @Parameter(description = "Level UUID", required = true) @PathVariable UUID id,
+            @RequestBody UpdateCourseLevelRequest req) {
+        return ResponseEntity.ok(lessonService.updateLevel(id, req));
+    }
+
     @Operation(summary = "Delete course level")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Level deleted"),
@@ -92,6 +124,19 @@ public class AdminCourseController {
     @PostMapping("/lessons")
     public ResponseEntity<LessonResponse> createLesson(@Valid @RequestBody CreateLessonRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(lessonService.createLesson(req));
+    }
+
+    @Operation(summary = "Update lesson")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lesson updated"),
+        @ApiResponse(responseCode = "404", description = "Lesson not found", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Insufficient role", content = @Content)
+    })
+    @PutMapping("/lessons/{id}")
+    public ResponseEntity<LessonResponse> updateLesson(
+            @Parameter(description = "Lesson UUID", required = true) @PathVariable UUID id,
+            @RequestBody UpdateLessonRequest req) {
+        return ResponseEntity.ok(lessonService.updateLesson(id, req));
     }
 
     @Operation(summary = "Delete lesson")

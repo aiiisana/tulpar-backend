@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kz.diploma.tulpar.dto.request.CreateArticleRequest;
+import kz.diploma.tulpar.dto.request.UpdateArticleRequest;
 import kz.diploma.tulpar.dto.response.ArticleResponse;
 import kz.diploma.tulpar.service.ArticleService;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,19 @@ public class AdminArticleController {
     @PostMapping
     public ResponseEntity<ArticleResponse> createArticle(@Valid @RequestBody CreateArticleRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(articleService.create(req));
+    }
+
+    @Operation(summary = "Update article", description = "Partially updates an article.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Article updated"),
+        @ApiResponse(responseCode = "404", description = "Article not found", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Insufficient role", content = @Content)
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<ArticleResponse> updateArticle(
+            @Parameter(description = "Article UUID", required = true) @PathVariable UUID id,
+            @RequestBody UpdateArticleRequest req) {
+        return ResponseEntity.ok(articleService.update(id, req));
     }
 
     @Operation(summary = "Delete article", description = "Permanently deletes an article.")

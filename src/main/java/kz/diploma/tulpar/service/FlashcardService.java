@@ -4,6 +4,7 @@ import kz.diploma.tulpar.domain.entity.Flashcard;
 import kz.diploma.tulpar.domain.entity.SavedFlashcard;
 import kz.diploma.tulpar.domain.entity.SavedFlashcardId;
 import kz.diploma.tulpar.dto.request.CreateFlashcardRequest;
+import kz.diploma.tulpar.dto.request.UpdateFlashcardRequest;
 import kz.diploma.tulpar.dto.response.FlashcardResponse;
 import kz.diploma.tulpar.dto.response.PageResponse;
 import kz.diploma.tulpar.exception.ResourceNotFoundException;
@@ -44,6 +45,19 @@ public class FlashcardService {
                 .audioUrl(req.getAudioUrl())
                 .build());
         return toResponse(saved);
+    }
+
+    @CacheEvict(value = "flashcards", allEntries = true)
+    @Transactional
+    public FlashcardResponse update(UUID id, UpdateFlashcardRequest req) {
+        Flashcard f = flashcardRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("Flashcard", id));
+        if (req.getWordRu() != null)         f.setWordRu(req.getWordRu());
+        if (req.getWordKz() != null)         f.setWordKz(req.getWordKz());
+        if (req.getTranscription() != null)  f.setTranscription(req.getTranscription());
+        if (req.getExampleSentence() != null) f.setExampleSentence(req.getExampleSentence());
+        if (req.getAudioUrl() != null)       f.setAudioUrl(req.getAudioUrl());
+        return toResponse(flashcardRepository.save(f));
     }
 
     @CacheEvict(value = "flashcards", allEntries = true)

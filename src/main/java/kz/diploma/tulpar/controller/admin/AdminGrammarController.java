@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kz.diploma.tulpar.dto.request.CreateGrammarRuleRequest;
+import kz.diploma.tulpar.dto.request.UpdateGrammarRuleRequest;
 import kz.diploma.tulpar.dto.response.GrammarRuleResponse;
 import kz.diploma.tulpar.service.GrammarService;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,19 @@ public class AdminGrammarController {
     @PostMapping
     public ResponseEntity<GrammarRuleResponse> createRule(@Valid @RequestBody CreateGrammarRuleRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(grammarService.create(req));
+    }
+
+    @Operation(summary = "Update grammar rule", description = "Partially updates a grammar rule.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Grammar rule updated"),
+        @ApiResponse(responseCode = "404", description = "Grammar rule not found", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Insufficient role", content = @Content)
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<GrammarRuleResponse> updateRule(
+            @Parameter(description = "Grammar rule UUID", required = true) @PathVariable UUID id,
+            @RequestBody UpdateGrammarRuleRequest req) {
+        return ResponseEntity.ok(grammarService.update(id, req));
     }
 
     @Operation(summary = "Delete grammar rule", description = "Permanently deletes a grammar rule.")

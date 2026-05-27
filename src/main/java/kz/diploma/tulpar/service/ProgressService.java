@@ -30,6 +30,8 @@ public class ProgressService {
     private final UserRepository userRepository;
     private final ExerciseRepository exerciseRepository;
     private final StreakService streakService;
+    private final AchievementService achievementService;
+    private final SpacedRepetitionService spacedRepetitionService;
 
     /**
      * Records or updates a user's attempt on an exercise.
@@ -67,7 +69,17 @@ public class ProgressService {
         if (correct) {
             xpEarned = 5;
             streakService.recordActivityAndAddXp(userId, xpEarned);
+            // Check achievement milestones after awarding XP
+            long totalCompleted = progressRepository
+                    .countByUserIdAndStatus(userId, ProgressStatus.COMPLETED);
+            achievementService.checkProgressAchievements(userId, totalCompleted);
+            long totalXp = streakService.getStats(userId).getTotalXp();
+            achievementService.checkXpAchievements(userId, totalXp);
         }
+
+        // Seed/update SRS state — done outside of the correctness guard so
+        // wrong answers also get the card scheduled for review soon.
+        spacedRepetitionService.seedFromLesson(userId, req.getExerciseId(), correct);
 
         String correctAnswer = extractCorrectAnswer(exercise);
         return toResponse(saved, correct, xpEarned, correctAnswer);

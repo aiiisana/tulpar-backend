@@ -24,6 +24,7 @@ public class StreakService {
     private final UserStatsRepository userStatsRepository;
     private final UserDailyActivityRepository activityRepository;
     private final UserRepository userRepository;
+    private final AchievementService achievementService;
 
     @Transactional(readOnly = true)
     public StatsResponse getStats(String userId) {
@@ -89,6 +90,8 @@ public class StreakService {
             stats.setLongestStreak(stats.getCurrentStreak());
         }
         userStatsRepository.save(stats);
+        // Check streak achievements after saving
+        achievementService.checkStreakAchievements(userId, stats.getCurrentStreak());
     }
 
     @Transactional

@@ -9,6 +9,9 @@ import kz.diploma.tulpar.domain.enums.ProgressStatus;
 import kz.diploma.tulpar.dto.request.CreateCourseLevelRequest;
 import kz.diploma.tulpar.dto.request.CreateCourseRequest;
 import kz.diploma.tulpar.dto.request.CreateLessonRequest;
+import kz.diploma.tulpar.dto.request.UpdateCourseRequest;
+import kz.diploma.tulpar.dto.request.UpdateCourseLevelRequest;
+import kz.diploma.tulpar.dto.request.UpdateLessonRequest;
 import kz.diploma.tulpar.dto.response.*;
 import kz.diploma.tulpar.exception.ResourceNotFoundException;
 import kz.diploma.tulpar.repository.*;
@@ -166,6 +169,21 @@ public class LessonService {
 
     @CacheEvict(value = "courses", allEntries = true)
     @Transactional
+    public CourseResponse updateCourse(UUID id, UpdateCourseRequest req) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("Course", id));
+        if (req.getTitle() != null)       course.setTitle(req.getTitle());
+        if (req.getDescription() != null) course.setDescription(req.getDescription());
+        if (req.getOrderIndex() != null)  course.setOrderIndex(req.getOrderIndex());
+        Course saved = courseRepository.save(course);
+        return CourseResponse.builder()
+                .id(saved.getId()).title(saved.getTitle())
+                .description(saved.getDescription()).orderIndex(saved.getOrderIndex())
+                .build();
+    }
+
+    @CacheEvict(value = "courses", allEntries = true)
+    @Transactional
     public void deleteCourse(UUID id) {
         if (!courseRepository.existsById(id)) throw ResourceNotFoundException.of("Course", id);
         courseRepository.deleteById(id);
@@ -198,6 +216,25 @@ public class LessonService {
             @CacheEvict(value = "courses", allEntries = true)
     })
     @Transactional
+    public CourseLevelResponse updateLevel(UUID id, UpdateCourseLevelRequest req) {
+        CourseLevel level = levelRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("CourseLevel", id));
+        if (req.getTitle() != null)           level.setTitle(req.getTitle());
+        if (req.getOrderIndex() != null)      level.setOrderIndex(req.getOrderIndex());
+        if (req.getDifficultyLevel() != null) level.setDifficultyLevel(req.getDifficultyLevel());
+        CourseLevel saved = levelRepository.save(level);
+        return CourseLevelResponse.builder()
+                .id(saved.getId()).title(saved.getTitle())
+                .orderIndex(saved.getOrderIndex()).difficultyLevel(saved.getDifficultyLevel())
+                .lessons(List.of())
+                .build();
+    }
+
+    @Caching(evict = {
+            @CacheEvict(value = "course-levels", allEntries = true),
+            @CacheEvict(value = "courses", allEntries = true)
+    })
+    @Transactional
     public void deleteLevel(UUID id) {
         if (!levelRepository.existsById(id)) throw ResourceNotFoundException.of("CourseLevel", id);
         levelRepository.deleteById(id);
@@ -220,6 +257,22 @@ public class LessonService {
                 .orderIndex(saved.getOrderIndex())
                 .xpReward(saved.getXpReward())
                 .unlocked(true) // newly created lesson — caller decides placement
+                .build();
+    }
+
+    @CacheEvict(value = "course-levels", allEntries = true)
+    @Transactional
+    public LessonResponse updateLesson(UUID id, UpdateLessonRequest req) {
+        Lesson lesson = lessonRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("Lesson", id));
+        if (req.getTitle() != null)      lesson.setTitle(req.getTitle());
+        if (req.getOrderIndex() != null) lesson.setOrderIndex(req.getOrderIndex());
+        if (req.getXpReward() != null)   lesson.setXpReward(req.getXpReward());
+        Lesson saved = lessonRepository.save(lesson);
+        return LessonResponse.builder()
+                .id(saved.getId()).title(saved.getTitle())
+                .orderIndex(saved.getOrderIndex()).xpReward(saved.getXpReward())
+                .unlocked(true)
                 .build();
     }
 

@@ -8,28 +8,20 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <style>
     body { background: #f0f2f5; }
-    #login-section {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    #login-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
     .login-card { width: 100%; max-width: 400px; }
     #app-section { display: none; }
     .table td, .table th { vertical-align: middle; }
     .type-badge { font-size: .7rem; letter-spacing: .03em; }
-    #ex-error:not(.d-none), #users-error:not(.d-none) {
-      font-size: .85rem;
-      border-width: 2px;
-    }
-    #role-warning:not(.d-none) {
-      border-left: 4px solid #ff9800;
-    }
+    .err-alert:not(.d-none) { font-size: .85rem; border-width: 2px; }
+    #role-warning:not(.d-none) { border-left: 4px solid #ff9800; }
+    .id-cell { font-family: monospace; font-size: .72rem; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+    .section-card { border-top: 3px solid #0d6efd; }
   </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════ LOGIN ══════════════════════════════════ -->
+<!-- ══════════════════════════════ LOGIN ══════════════════════════════ -->
 <section id="login-section">
   <div class="card shadow login-card p-4">
     <div class="text-center mb-4">
@@ -53,14 +45,11 @@
   </div>
 </section>
 
-<!-- ════════════════════════════════════ APP ══════════════════════════════════ -->
+<!-- ══════════════════════════════ APP ══════════════════════════════ -->
 <section id="app-section">
 
-  <!-- Navbar -->
   <nav class="navbar navbar-dark bg-dark px-4 py-2">
-    <span class="navbar-brand fw-bold">
-      <i class="bi bi-translate me-2"></i>Tulpar Admin
-    </span>
+    <span class="navbar-brand fw-bold"><i class="bi bi-translate me-2"></i>Tulpar Admin</span>
     <div class="d-flex align-items-center gap-3">
       <span id="nav-user" class="text-secondary small"></span>
       <span id="nav-role" class="badge bg-secondary"></span>
@@ -70,7 +59,6 @@
     </div>
   </nav>
 
-  <!-- Role warning banner -->
   <div id="role-warning" class="alert alert-warning d-none rounded-0 mb-0 py-2 px-4 small">
     <i class="bi bi-exclamation-triangle-fill me-2"></i>
     <strong id="role-warning-text"></strong>
@@ -78,11 +66,35 @@
 
   <div class="container-fluid py-4 px-4">
 
-    <!-- Tab nav -->
     <ul class="nav nav-tabs mb-4" id="mainTab" role="tablist">
       <li class="nav-item">
         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-exercises" type="button">
           <i class="bi bi-journal-text me-1"></i>Exercises
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-articles" type="button" id="articles-tab-btn">
+          <i class="bi bi-newspaper me-1"></i>Articles
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-flashcards" type="button" id="flashcards-tab-btn">
+          <i class="bi bi-card-text me-1"></i>Flashcards
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-grammar" type="button" id="grammar-tab-btn">
+          <i class="bi bi-book me-1"></i>Grammar
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-courses" type="button" id="courses-tab-btn">
+          <i class="bi bi-diagram-3 me-1"></i>Courses
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-challenges" type="button">
+          <i class="bi bi-trophy me-1"></i>Daily Challenges
         </button>
       </li>
       <li class="nav-item">
@@ -99,9 +111,8 @@
 
     <div class="tab-content">
 
-      <!-- ─────────────────── EXERCISES TAB ─────────────────── -->
+      <!-- ──────────────────── EXERCISES TAB ──────────────────── -->
       <div class="tab-pane fade show active" id="tab-exercises">
-        <!-- Toolbar -->
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
           <div class="d-flex gap-2 flex-wrap">
             <select id="filter-type" class="form-select form-select-sm" style="width:180px">
@@ -119,54 +130,227 @@
               <option value="INTERMEDIATE">INTERMEDIATE</option>
               <option value="ADVANCED">ADVANCED</option>
             </select>
-            <button id="filter-btn" class="btn btn-outline-secondary btn-sm">
-              <i class="bi bi-funnel me-1"></i>Filter
-            </button>
-            <button id="refresh-btn" class="btn btn-outline-secondary btn-sm">
-              <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-            </button>
+            <button id="filter-btn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel me-1"></i>Filter</button>
+            <button id="refresh-btn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
           </div>
           <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createModal">
             <i class="bi bi-plus-lg me-1"></i>New Exercise
           </button>
         </div>
-
-        <!-- Error alert -->
-        <div id="ex-error" class="alert alert-danger d-none mb-3 small"></div>
-
-        <!-- Table -->
+        <div id="ex-error" class="alert alert-danger d-none mb-3 small err-alert"></div>
         <div class="card shadow-sm">
           <div class="table-responsive">
             <table class="table table-hover mb-0">
               <thead class="table-light">
-                <tr>
-                  <th>Question</th>
-                  <th>Type</th>
-                  <th>Difficulty</th>
-                  <th>Created</th>
-                  <th class="text-end">Actions</th>
-                </tr>
+                <tr><th>Question</th><th>Type</th><th>Difficulty</th><th>Created</th><th class="text-end">Actions</th></tr>
               </thead>
-              <tbody id="ex-tbody">
-                <tr><td colspan="5" class="text-center text-muted py-4">Loading…</td></tr>
-              </tbody>
+              <tbody id="ex-tbody"><tr><td colspan="5" class="text-center text-muted py-4">Loading…</td></tr></tbody>
             </table>
           </div>
           <div class="card-footer d-flex justify-content-between align-items-center py-2">
             <span id="ex-info" class="text-muted small"></span>
             <div class="btn-group btn-group-sm">
-              <button id="ex-prev" class="btn btn-outline-secondary" disabled>
-                <i class="bi bi-chevron-left"></i>
-              </button>
-              <button id="ex-next" class="btn btn-outline-secondary" disabled>
-                <i class="bi bi-chevron-right"></i>
-              </button>
+              <button id="ex-prev" class="btn btn-outline-secondary" disabled><i class="bi bi-chevron-left"></i></button>
+              <button id="ex-next" class="btn btn-outline-secondary" disabled><i class="bi bi-chevron-right"></i></button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ─────────────────── MEDIA TAB ─────────────────── -->
+      <!-- ──────────────────── ARTICLES TAB ──────────────────── -->
+      <div class="tab-pane fade" id="tab-articles">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div class="d-flex gap-2 flex-wrap">
+            <select id="art-filter-diff" class="form-select form-select-sm" style="width:155px">
+              <option value="">All levels</option>
+              <option value="BEGINNER">BEGINNER</option>
+              <option value="ELEMENTARY">ELEMENTARY</option>
+              <option value="INTERMEDIATE">INTERMEDIATE</option>
+              <option value="ADVANCED">ADVANCED</option>
+            </select>
+            <button id="art-filter-btn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel me-1"></i>Filter</button>
+            <button id="art-refresh-btn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+          </div>
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createArticleModal">
+            <i class="bi bi-plus-lg me-1"></i>New Article
+          </button>
+        </div>
+        <div id="art-error" class="alert alert-danger d-none mb-3 small err-alert"></div>
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr><th>Title</th><th>Title KZ</th><th>Difficulty</th><th>Has Image</th><th>Created</th><th class="text-end">Actions</th></tr>
+              </thead>
+              <tbody id="art-tbody"><tr><td colspan="6" class="text-center text-muted py-4">Loading…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="card-footer d-flex justify-content-between align-items-center py-2">
+            <span id="art-info" class="text-muted small"></span>
+            <div class="btn-group btn-group-sm">
+              <button id="art-prev" class="btn btn-outline-secondary" disabled><i class="bi bi-chevron-left"></i></button>
+              <button id="art-next" class="btn btn-outline-secondary" disabled><i class="bi bi-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ──────────────────── FLASHCARDS TAB ──────────────────── -->
+      <div class="tab-pane fade" id="tab-flashcards">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div class="d-flex gap-2">
+            <button id="fc-refresh-btn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+            <button id="fc-evict-btn" class="btn btn-outline-warning btn-sm"><i class="bi bi-lightning me-1"></i>Evict Cache</button>
+          </div>
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createFlashcardModal">
+            <i class="bi bi-plus-lg me-1"></i>New Flashcard
+          </button>
+        </div>
+        <div id="fc-success" class="alert alert-success d-none mb-3 small"></div>
+        <div id="fc-error" class="alert alert-danger d-none mb-3 small err-alert"></div>
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr><th>RU</th><th>KZ</th><th>Transcription</th><th>Example</th><th>Audio</th><th class="text-end">Actions</th></tr>
+              </thead>
+              <tbody id="fc-tbody"><tr><td colspan="6" class="text-center text-muted py-4">Loading…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="card-footer d-flex justify-content-between align-items-center py-2">
+            <span id="fc-info" class="text-muted small"></span>
+            <div class="btn-group btn-group-sm">
+              <button id="fc-prev" class="btn btn-outline-secondary" disabled><i class="bi bi-chevron-left"></i></button>
+              <button id="fc-next" class="btn btn-outline-secondary" disabled><i class="bi bi-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ──────────────────── GRAMMAR TAB ──────────────────── -->
+      <div class="tab-pane fade" id="tab-grammar">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <button id="gr-refresh-btn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createGrammarModal">
+            <i class="bi bi-plus-lg me-1"></i>New Grammar Rule
+          </button>
+        </div>
+        <div id="gr-error" class="alert alert-danger d-none mb-3 small err-alert"></div>
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr><th>Title</th><th>Explanation</th><th>Examples</th><th class="text-end">Actions</th></tr>
+              </thead>
+              <tbody id="gr-tbody"><tr><td colspan="4" class="text-center text-muted py-4">Loading…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="card-footer py-2">
+            <span id="gr-info" class="text-muted small"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ──────────────────── COURSES TAB ──────────────────── -->
+      <div class="tab-pane fade" id="tab-courses">
+
+        <!-- Courses -->
+        <div class="card shadow-sm mb-4 section-card">
+          <div class="card-header d-flex justify-content-between align-items-center py-2">
+            <span class="fw-semibold"><i class="bi bi-collection me-1"></i>Courses</span>
+            <div class="d-flex gap-2">
+              <button id="course-refresh-btn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+              <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createCourseModal">
+                <i class="bi bi-plus-lg me-1"></i>New Course
+              </button>
+            </div>
+          </div>
+          <div id="course-error" class="alert alert-danger d-none m-3 small err-alert"></div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr><th>ID</th><th>Title</th><th>Description</th><th>Order</th><th class="text-end">Actions</th></tr>
+              </thead>
+              <tbody id="course-tbody"><tr><td colspan="5" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Course Levels -->
+        <div class="card shadow-sm mb-4 section-card" style="border-top-color:#198754">
+          <div class="card-header d-flex justify-content-between align-items-center py-2 flex-wrap gap-2">
+            <span class="fw-semibold"><i class="bi bi-layers me-1"></i>Course Levels</span>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+              <select id="level-course-filter" class="form-select form-select-sm" style="width:220px">
+                <option value="">— select course —</option>
+              </select>
+              <button id="level-load-btn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-search me-1"></i>Load</button>
+              <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#createLevelModal">
+                <i class="bi bi-plus-lg me-1"></i>New Level
+              </button>
+            </div>
+          </div>
+          <div id="level-error" class="alert alert-danger d-none m-3 small err-alert"></div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr><th>ID</th><th>Title</th><th>Difficulty</th><th>Order</th><th class="text-end">Actions</th></tr>
+              </thead>
+              <tbody id="level-tbody"><tr><td colspan="5" class="text-center text-muted py-3">Select a course to view its levels</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Lessons -->
+        <div class="card shadow-sm mb-4 section-card" style="border-top-color:#fd7e14">
+          <div class="card-header d-flex justify-content-between align-items-center py-2">
+            <span class="fw-semibold"><i class="bi bi-book-half me-1"></i>Lessons</span>
+            <button class="btn btn-sm" style="background:#fd7e14;color:#fff" data-bs-toggle="modal" data-bs-target="#createLessonModal">
+              <i class="bi bi-plus-lg me-1"></i>New Lesson
+            </button>
+          </div>
+          <div class="card-body py-2 text-muted small">
+            Lessons belong to a Course Level. Paste the <strong>Level ID</strong> from the table above when creating a lesson.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ──────────────────── DAILY CHALLENGES TAB ──────────────────── -->
+      <div class="tab-pane fade" id="tab-challenges">
+        <div class="row justify-content-center">
+          <div class="col-md-7 col-lg-5">
+            <div class="card shadow-sm">
+              <div class="card-header fw-semibold"><i class="bi bi-trophy me-2"></i>Create Daily Challenge</div>
+              <div class="card-body">
+                <div id="ch-alert" class="alert d-none small mb-3"></div>
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Challenge Date <span class="text-danger">*</span></label>
+                  <input id="ch-date" type="date" class="form-control">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Correct Word <span class="text-danger">*</span></label>
+                  <input id="ch-word" type="text" class="form-control" placeholder="e.g. мектеп">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Letters <span class="text-muted small">(comma-separated)</span> <span class="text-danger">*</span></label>
+                  <input id="ch-letters" type="text" class="form-control" placeholder="м, е, к, т, е, п, а, б">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Image URLs <span class="text-muted small">(one per line)</span> <span class="text-danger">*</span></label>
+                  <textarea id="ch-images" class="form-control" rows="4" placeholder="https://...&#10;https://..."></textarea>
+                </div>
+                <button id="ch-create-btn" class="btn btn-primary w-100">
+                  <span id="ch-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>
+                  <i class="bi bi-plus-circle me-1"></i>Create Challenge
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ──────────────────── MEDIA TAB ──────────────────── -->
       <div class="tab-pane fade" id="tab-media">
         <div class="row justify-content-center">
           <div class="col-md-6 col-lg-5">
@@ -192,11 +376,8 @@
                 </button>
               </div>
             </div>
-
             <div id="media-result" class="card shadow-sm mt-3 d-none">
-              <div class="card-header fw-semibold text-success">
-                <i class="bi bi-check-circle me-1"></i>Upload Successful
-              </div>
+              <div class="card-header fw-semibold text-success"><i class="bi bi-check-circle me-1"></i>Upload Successful</div>
               <div class="card-body p-0">
                 <table class="table table-sm mb-0">
                   <tbody id="media-result-body"></tbody>
@@ -207,7 +388,7 @@
         </div>
       </div>
 
-      <!-- ─────────────────── USERS TAB ─────────────────── -->
+      <!-- ──────────────────── USERS TAB ──────────────────── -->
       <div class="tab-pane fade" id="tab-users">
         <div class="d-flex gap-2 mb-3 align-items-center">
           <select id="user-role-filter" class="form-select form-select-sm" style="width:200px">
@@ -216,30 +397,15 @@
             <option value="CONTENT_MANAGER">CONTENT_MANAGER</option>
             <option value="ADMIN">ADMIN</option>
           </select>
-          <button id="user-filter-btn" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-funnel me-1"></i>Filter
-          </button>
-          <button id="user-refresh-btn" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-          </button>
+          <button id="user-filter-btn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel me-1"></i>Filter</button>
+          <button id="user-refresh-btn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
         </div>
-
-        <!-- Error alert -->
-        <div id="users-error" class="alert alert-danger d-none mb-3 small"></div>
-
+        <div id="users-error" class="alert alert-danger d-none mb-3 small err-alert"></div>
         <div class="card shadow-sm">
           <div class="table-responsive">
             <table class="table table-hover mb-0">
               <thead class="table-light">
-                <tr>
-                  <th>Firebase UID</th>
-                  <th>Email</th>
-                  <th>Username</th>
-                  <th>Role</th>
-                  <th>Level</th>
-                  <th>Registered</th>
-                  <th class="text-end">Change Role</th>
-                </tr>
+                <tr><th>Firebase UID</th><th>Email</th><th>Username</th><th>Role</th><th>Level</th><th>Registered</th><th class="text-end">Change Role</th></tr>
               </thead>
               <tbody id="users-tbody">
                 <tr><td colspan="7" class="text-center text-muted py-4">
@@ -248,9 +414,7 @@
               </tbody>
             </table>
           </div>
-          <div class="card-footer py-2">
-            <span id="users-info" class="text-muted small"></span>
-          </div>
+          <div class="card-footer py-2"><span id="users-info" class="text-muted small"></span></div>
         </div>
       </div>
 
@@ -258,7 +422,7 @@
   </div><!-- /container -->
 </section>
 
-<!-- ═══════════════════════ CREATE EXERCISE MODAL ══════════════════════════ -->
+<!-- ══════════════ CREATE EXERCISE MODAL ══════════════ -->
 <div class="modal fade" id="createModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
@@ -269,8 +433,6 @@
       <div class="modal-body">
         <div id="create-alert" class="alert d-none small"></div>
         <div class="row g-3">
-
-          <!-- Common -->
           <div class="col-md-6">
             <label class="form-label fw-semibold">Type <span class="text-danger">*</span></label>
             <select id="c-type" class="form-select">
@@ -298,117 +460,65 @@
             <label class="form-label">Explanation <span class="text-muted small">(optional)</span></label>
             <input id="c-explanation" type="text" class="form-control" placeholder="Shown after answering">
           </div>
-
-          <!-- VOCABULARY fields -->
           <div class="col-12 type-section" id="sec-VOCABULARY">
             <hr class="mt-1 mb-2">
             <p class="fw-semibold small text-muted mb-2">VOCABULARY</p>
             <div class="row g-2">
-              <div class="col-md-6">
-                <label class="form-label">Word</label>
-                <input id="c-word" type="text" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Translation</label>
-                <input id="c-translation" type="text" class="form-control">
-              </div>
+              <div class="col-md-6"><label class="form-label">Word</label><input id="c-word" type="text" class="form-control"></div>
+              <div class="col-md-6"><label class="form-label">Translation</label><input id="c-translation" type="text" class="form-control"></div>
             </div>
           </div>
-
-          <!-- LISTENING fields -->
           <div class="col-12 type-section d-none" id="sec-LISTENING">
             <hr class="mt-1 mb-2">
             <p class="fw-semibold small text-muted mb-2">LISTENING</p>
             <div class="row g-2">
-              <div class="col-12">
-                <label class="form-label">Audio URL</label>
-                <input id="c-audioUrl" type="text" class="form-control" placeholder="Paste URL from Media tab">
-              </div>
-              <div class="col-12">
-                <label class="form-label">Transcript</label>
-                <input id="c-transcript" type="text" class="form-control">
-              </div>
+              <div class="col-12"><label class="form-label">Audio URL</label><input id="c-audioUrl" type="text" class="form-control" placeholder="Paste URL from Media tab"></div>
+              <div class="col-12"><label class="form-label">Transcript</label><input id="c-transcript" type="text" class="form-control"></div>
             </div>
           </div>
-
-          <!-- VIDEO_CONTEXT fields -->
           <div class="col-12 type-section d-none" id="sec-VIDEO_CONTEXT">
             <hr class="mt-1 mb-2">
             <p class="fw-semibold small text-muted mb-2">VIDEO CONTEXT</p>
             <div class="row g-2">
-              <div class="col-12">
-                <label class="form-label">Video URL</label>
-                <input id="c-videoUrl" type="text" class="form-control" placeholder="Paste URL from Media tab">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Start Time (sec)</label>
-                <input id="c-startTime" type="number" step="0.1" min="0" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">End Time (sec)</label>
-                <input id="c-endTime" type="number" step="0.1" min="0" class="form-control">
-              </div>
+              <div class="col-12"><label class="form-label">Video URL</label><input id="c-videoUrl" type="text" class="form-control" placeholder="Paste URL from Media tab"></div>
+              <div class="col-md-6"><label class="form-label">Start Time (sec)</label><input id="c-startTime" type="number" step="0.1" min="0" class="form-control"></div>
+              <div class="col-md-6"><label class="form-label">End Time (sec)</label><input id="c-endTime" type="number" step="0.1" min="0" class="form-control"></div>
             </div>
           </div>
-
-          <!-- IMAGE_CONTEXT fields -->
           <div class="col-12 type-section d-none" id="sec-IMAGE_CONTEXT">
             <hr class="mt-1 mb-2">
             <p class="fw-semibold small text-muted mb-2">IMAGE CONTEXT</p>
-            <div class="row g-2">
-              <div class="col-12">
-                <label class="form-label">Image URL</label>
-                <input id="c-imageUrl" type="text" class="form-control" placeholder="Paste URL from Media tab">
-              </div>
-            </div>
+            <div class="col-12"><label class="form-label">Image URL</label><input id="c-imageUrl" type="text" class="form-control" placeholder="Paste URL from Media tab"></div>
           </div>
-
-          <!-- SENTENCE_BUILDER fields -->
           <div class="col-12 type-section d-none" id="sec-SENTENCE_BUILDER">
             <hr class="mt-1 mb-2">
             <p class="fw-semibold small text-muted mb-2">SENTENCE BUILDER</p>
             <div class="row g-2">
-              <div class="col-12">
-                <label class="form-label">Correct Sentence</label>
-                <input id="c-correctSentence" type="text" class="form-control">
-              </div>
-              <div class="col-12">
-                <label class="form-label">Shuffled Words <span class="text-muted small">(comma-separated)</span></label>
-                <input id="c-shuffledWords" type="text" class="form-control" placeholder="мен, барамын, мектепке">
-              </div>
+              <div class="col-12"><label class="form-label">Correct Sentence</label><input id="c-correctSentence" type="text" class="form-control"></div>
+              <div class="col-12"><label class="form-label">Shuffled Words <span class="text-muted small">(comma-separated)</span></label><input id="c-shuffledWords" type="text" class="form-control" placeholder="мен, барамын, мектепке"></div>
             </div>
           </div>
-
-          <!-- Options + correct answer (hidden for SENTENCE_BUILDER) -->
           <div class="col-12" id="sec-options">
             <hr class="mt-1 mb-2">
             <p class="fw-semibold small text-muted mb-2">ANSWER OPTIONS</p>
             <div class="row g-2">
-              <div class="col-12">
-                <label class="form-label">Options <span class="text-muted small">(comma-separated)</span></label>
-                <input id="c-options" type="text" class="form-control" placeholder="option1, option2, option3, option4">
-              </div>
-              <div class="col-12">
-                <label class="form-label">Correct Answer <span class="text-danger">*</span></label>
-                <input id="c-correctAnswer" type="text" class="form-control">
-              </div>
+              <div class="col-12"><label class="form-label">Options <span class="text-muted small">(comma-separated)</span></label><input id="c-options" type="text" class="form-control" placeholder="option1, option2, option3, option4"></div>
+              <div class="col-12"><label class="form-label">Correct Answer <span class="text-danger">*</span></label><input id="c-correctAnswer" type="text" class="form-control"></div>
             </div>
           </div>
-
-        </div><!-- /row -->
-      </div><!-- /modal-body -->
+        </div>
+      </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button id="create-btn" type="button" class="btn btn-primary">
-          <span id="create-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>
-          Create
+          <span id="create-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Create
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════ EDIT EXERCISE MODAL ══════════════════════════ -->
+<!-- ══════════════ EDIT EXERCISE MODAL ══════════════ -->
 <div class="modal fade" id="editModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -429,36 +539,23 @@
               <option value="ADVANCED">ADVANCED</option>
             </select>
           </div>
-          <div class="col-12">
-            <label class="form-label fw-semibold">Question</label>
-            <input id="edit-question" type="text" class="form-control">
-          </div>
-          <div class="col-12">
-            <label class="form-label">Explanation</label>
-            <input id="edit-explanation" type="text" class="form-control">
-          </div>
-          <div class="col-12">
-            <label class="form-label">Options <span class="text-muted small">(comma-separated)</span></label>
-            <input id="edit-options" type="text" class="form-control">
-          </div>
-          <div class="col-12">
-            <label class="form-label">Correct Answer</label>
-            <input id="edit-correctAnswer" type="text" class="form-control">
-          </div>
+          <div class="col-12"><label class="form-label fw-semibold">Question</label><input id="edit-question" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label">Explanation</label><input id="edit-explanation" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label">Options <span class="text-muted small">(comma-separated)</span></label><input id="edit-options" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label">Correct Answer</label><input id="edit-correctAnswer" type="text" class="form-control"></div>
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         <button id="edit-btn" type="button" class="btn btn-primary">
-          <span id="edit-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>
-          Save Changes
+          <span id="edit-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Save Changes
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════ DELETE CONFIRM MODAL ══════════════════════════ -->
+<!-- ══════════════ DELETE CONFIRM MODAL (shared) ══════════════ -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
@@ -466,10 +563,387 @@
         <h5 class="modal-title text-danger"><i class="bi bi-trash me-2"></i>Delete</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body small">Are you sure? This action cannot be undone.</div>
+      <div class="modal-body small">Are you sure? This action cannot be undone.<br>
+        <span id="delete-label" class="text-muted"></span>
+      </div>
       <div class="modal-footer">
         <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
         <button id="delete-confirm-btn" class="btn btn-danger btn-sm">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CREATE ARTICLE MODAL ══════════════ -->
+<div class="modal fade" id="createArticleModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>New Article</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="art-create-alert" class="alert d-none small"></div>
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label fw-semibold">Title (EN) <span class="text-danger">*</span></label><input id="art-title" type="text" class="form-control"></div>
+          <div class="col-md-6"><label class="form-label fw-semibold">Title (KZ)</label><input id="art-titleKz" type="text" class="form-control"></div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Difficulty <span class="text-danger">*</span></label>
+            <select id="art-difficulty" class="form-select">
+              <option value="BEGINNER">BEGINNER</option>
+              <option value="ELEMENTARY">ELEMENTARY</option>
+              <option value="INTERMEDIATE">INTERMEDIATE</option>
+              <option value="ADVANCED">ADVANCED</option>
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label">Image URL</label><input id="art-imageUrl" type="text" class="form-control" placeholder="Paste URL from Media tab"></div>
+          <div class="col-12"><label class="form-label fw-semibold">Content (EN) <span class="text-danger">*</span></label><textarea id="art-content" class="form-control" rows="5"></textarea></div>
+          <div class="col-12"><label class="form-label">Content (KZ)</label><textarea id="art-contentKz" class="form-control" rows="5"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="art-create-btn" type="button" class="btn btn-primary">
+          <span id="art-create-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Create
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CREATE FLASHCARD MODAL ══════════════ -->
+<div class="modal fade" id="createFlashcardModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>New Flashcard</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="fc-create-alert" class="alert d-none small"></div>
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label fw-semibold">Word (RU) <span class="text-danger">*</span></label><input id="fc-wordRu" type="text" class="form-control"></div>
+          <div class="col-md-6"><label class="form-label fw-semibold">Word (KZ) <span class="text-danger">*</span></label><input id="fc-wordKz" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label">Transcription</label><input id="fc-transcription" type="text" class="form-control" placeholder="[мектеп]"></div>
+          <div class="col-12"><label class="form-label">Example Sentence</label><input id="fc-example" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label">Audio URL</label><input id="fc-audioUrl" type="text" class="form-control" placeholder="Paste URL from Media tab"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="fc-create-btn" type="button" class="btn btn-primary">
+          <span id="fc-create-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Create
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CREATE GRAMMAR MODAL ══════════════ -->
+<div class="modal fade" id="createGrammarModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>New Grammar Rule</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="gr-create-alert" class="alert d-none small"></div>
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label fw-semibold">Title <span class="text-danger">*</span></label><input id="gr-title" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label fw-semibold">Explanation <span class="text-danger">*</span></label><textarea id="gr-explanation" class="form-control" rows="4"></textarea></div>
+          <div class="col-12"><label class="form-label">Examples <span class="text-muted small">(one per line)</span></label><textarea id="gr-examples" class="form-control" rows="4" placeholder="Мен мектепке барамын.&#10;Сен үйде отырасың."></textarea></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="gr-create-btn" type="button" class="btn btn-primary">
+          <span id="gr-create-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Create
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CREATE COURSE MODAL ══════════════ -->
+<div class="modal fade" id="createCourseModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>New Course</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="course-create-alert" class="alert d-none small"></div>
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label fw-semibold">Title <span class="text-danger">*</span></label><input id="course-title" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label">Description</label><textarea id="course-desc" class="form-control" rows="3"></textarea></div>
+          <div class="col-12"><label class="form-label">Order Index</label><input id="course-order" type="number" min="0" value="0" class="form-control"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="course-create-btn" type="button" class="btn btn-primary">
+          <span id="course-create-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Create
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CREATE COURSE LEVEL MODAL ══════════════ -->
+<div class="modal fade" id="createLevelModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>New Course Level</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="level-create-alert" class="alert d-none small"></div>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold">Course <span class="text-danger">*</span></label>
+            <select id="level-courseId" class="form-select">
+              <option value="">— select course —</option>
+            </select>
+          </div>
+          <div class="col-12"><label class="form-label fw-semibold">Title <span class="text-danger">*</span></label><input id="level-title" type="text" class="form-control"></div>
+          <div class="col-md-6">
+            <label class="form-label">Difficulty Level</label>
+            <select id="level-difficulty" class="form-select">
+              <option value="">— none —</option>
+              <option value="BEGINNER">BEGINNER</option>
+              <option value="ELEMENTARY">ELEMENTARY</option>
+              <option value="INTERMEDIATE">INTERMEDIATE</option>
+              <option value="ADVANCED">ADVANCED</option>
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label">Order Index</label><input id="level-order" type="number" min="0" value="0" class="form-control"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="level-create-btn" type="button" class="btn btn-success">
+          <span id="level-create-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Create
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CREATE LESSON MODAL ══════════════ -->
+<div class="modal fade" id="createLessonModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>New Lesson</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="lesson-create-alert" class="alert d-none small"></div>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold">Course Level ID <span class="text-danger">*</span></label>
+            <input id="lesson-levelId" type="text" class="form-control font-monospace" placeholder="UUID of the level">
+            <div class="form-text">Copy the Level ID from the Course Levels table above.</div>
+          </div>
+          <div class="col-12"><label class="form-label fw-semibold">Title <span class="text-danger">*</span></label><input id="lesson-title" type="text" class="form-control"></div>
+          <div class="col-md-6"><label class="form-label">Order Index</label><input id="lesson-order" type="number" min="0" value="0" class="form-control"></div>
+          <div class="col-md-6"><label class="form-label">XP Reward</label><input id="lesson-xp" type="number" min="0" value="10" class="form-control"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="lesson-create-btn" type="button" class="btn btn-primary" style="background:#fd7e14;border-color:#fd7e14">
+          <span id="lesson-create-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Create
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ EDIT ARTICLE MODAL ══════════════ -->
+<div class="modal fade" id="editArticleModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Article</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="art-edit-alert" class="alert d-none small"></div>
+        <input id="art-edit-id" type="hidden">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label fw-semibold">Title (EN)</label><input id="art-edit-title" type="text" class="form-control"></div>
+          <div class="col-md-6"><label class="form-label">Title (KZ)</label><input id="art-edit-titleKz" type="text" class="form-control"></div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Difficulty</label>
+            <select id="art-edit-difficulty" class="form-select">
+              <option value="BEGINNER">BEGINNER</option>
+              <option value="ELEMENTARY">ELEMENTARY</option>
+              <option value="INTERMEDIATE">INTERMEDIATE</option>
+              <option value="ADVANCED">ADVANCED</option>
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label">Image URL</label><input id="art-edit-imageUrl" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label fw-semibold">Content (EN)</label><textarea id="art-edit-content" class="form-control" rows="5"></textarea></div>
+          <div class="col-12"><label class="form-label">Content (KZ)</label><textarea id="art-edit-contentKz" class="form-control" rows="5"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="art-edit-btn" type="button" class="btn btn-primary">
+          <span id="art-edit-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ EDIT FLASHCARD MODAL ══════════════ -->
+<div class="modal fade" id="editFlashcardModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Flashcard</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="fc-edit-alert" class="alert d-none small"></div>
+        <input id="fc-edit-id" type="hidden">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label fw-semibold">Word (RU)</label><input id="fc-edit-wordRu" type="text" class="form-control"></div>
+          <div class="col-md-6"><label class="form-label fw-semibold">Word (KZ)</label><input id="fc-edit-wordKz" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label">Transcription</label><input id="fc-edit-transcription" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label">Example Sentence</label><input id="fc-edit-example" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label">Audio URL</label><input id="fc-edit-audioUrl" type="text" class="form-control"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="fc-edit-btn" type="button" class="btn btn-primary">
+          <span id="fc-edit-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ EDIT GRAMMAR MODAL ══════════════ -->
+<div class="modal fade" id="editGrammarModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Grammar Rule</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="gr-edit-alert" class="alert d-none small"></div>
+        <input id="gr-edit-id" type="hidden">
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label fw-semibold">Title</label><input id="gr-edit-title" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label fw-semibold">Explanation</label><textarea id="gr-edit-explanation" class="form-control" rows="4"></textarea></div>
+          <div class="col-12"><label class="form-label">Examples <span class="text-muted small">(one per line)</span></label><textarea id="gr-edit-examples" class="form-control" rows="4"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="gr-edit-btn" type="button" class="btn btn-primary">
+          <span id="gr-edit-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ EDIT COURSE MODAL ══════════════ -->
+<div class="modal fade" id="editCourseModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Course</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="course-edit-alert" class="alert d-none small"></div>
+        <input id="course-edit-id" type="hidden">
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label fw-semibold">Title</label><input id="course-edit-title" type="text" class="form-control"></div>
+          <div class="col-12"><label class="form-label">Description</label><textarea id="course-edit-desc" class="form-control" rows="3"></textarea></div>
+          <div class="col-12"><label class="form-label">Order Index</label><input id="course-edit-order" type="number" min="0" class="form-control"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="course-edit-btn" type="button" class="btn btn-primary">
+          <span id="course-edit-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ EDIT COURSE LEVEL MODAL ══════════════ -->
+<div class="modal fade" id="editLevelModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Course Level</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="level-edit-alert" class="alert d-none small"></div>
+        <input id="level-edit-id" type="hidden">
+        <input id="level-edit-courseId" type="hidden">
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label fw-semibold">Title</label><input id="level-edit-title" type="text" class="form-control"></div>
+          <div class="col-md-6">
+            <label class="form-label">Difficulty</label>
+            <select id="level-edit-difficulty" class="form-select">
+              <option value="">— none —</option>
+              <option value="BEGINNER">BEGINNER</option>
+              <option value="ELEMENTARY">ELEMENTARY</option>
+              <option value="INTERMEDIATE">INTERMEDIATE</option>
+              <option value="ADVANCED">ADVANCED</option>
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label">Order Index</label><input id="level-edit-order" type="number" min="0" class="form-control"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="level-edit-btn" type="button" class="btn btn-success">
+          <span id="level-edit-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ EDIT LESSON MODAL ══════════════ -->
+<div class="modal fade" id="editLessonModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Lesson</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="lesson-edit-alert" class="alert d-none small"></div>
+        <input id="lesson-edit-id" type="hidden">
+        <input id="lesson-edit-courseId" type="hidden">
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label fw-semibold">Title</label><input id="lesson-edit-title" type="text" class="form-control"></div>
+          <div class="col-md-6"><label class="form-label">Order Index</label><input id="lesson-edit-order" type="number" min="0" class="form-control"></div>
+          <div class="col-md-6"><label class="form-label">XP Reward</label><input id="lesson-edit-xp" type="number" min="0" class="form-control"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="lesson-edit-btn" type="button" class="btn btn-primary" style="background:#fd7e14;border-color:#fd7e14">
+          <span id="lesson-edit-spinner" class="spinner-border spinner-border-sm d-none me-1"></span>Save
+        </button>
       </div>
     </div>
   </div>
@@ -483,7 +957,6 @@
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
     from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
-  // ─── Config ──────────────────────────────────────────────────────────────
   const FIREBASE_CONFIG = {
     apiKey: "AIzaSyDYi5C4FohwProyewhKBNEj4_AEyzz9-PQ",
     authDomain: "tulpar-19a6c.firebaseapp.com",
@@ -494,20 +967,13 @@
     measurementId: "G-TKFVGBVC2L"
   };
 
-  // Auto-detect API base from the URL the panel is served from.
-  // If served at  /api/admin-ui/index.html  → API = '/api'
-  // If served at  /admin-ui/index.html      → API = ''
   const API = window.location.pathname.split('/admin-ui')[0];
-
-  // ─── Firebase init ────────────────────────────────────────────────────────
   const auth = getAuth(initializeApp(FIREBASE_CONFIG));
-
-  // ─── Helpers ──────────────────────────────────────────────────────────────
   const $ = id => document.getElementById(id);
 
   async function bearerToken() {
     if (!auth.currentUser) throw new Error('Not signed in');
-    return auth.currentUser.getIdToken(/* forceRefresh */ false);
+    return auth.currentUser.getIdToken(false);
   }
 
   async function api(path, opts = {}) {
@@ -516,28 +982,18 @@
       ...opts,
       headers: { 'Authorization': `Bearer ${t}`, ...(opts.headers || {}) },
     });
-
     if (res.status === 204) return null;
-
-    // Read body as text first so we can give a clear error if the server
-    // returns HTML (e.g. a reverse-proxy 404 page) instead of JSON.
     const text = await res.text();
     let json = null;
-    try { json = JSON.parse(text); }
-    catch {
-      // Non-JSON response (HTML error page, etc.)
+    try { json = JSON.parse(text); } catch {
       if (!res.ok) {
         const snippet = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
-        throw new Error(`HTTP ${res.status} — сервер вернул не JSON.\n` +
-          `Убедитесь, что бэкенд запущен и адрес правильный.\nURL: ${API + path}\n${snippet}`);
+        throw new Error(`HTTP ${res.status} — сервер вернул не JSON.\nURL: ${API + path}\n${snippet}`);
       }
     }
-
     if (!res.ok || json?.success === false) {
-      const msg = json?.error || json?.message || res.statusText;
-      throw new Error(msg);
+      throw new Error(json?.error || json?.message || res.statusText);
     }
-
     return json?.data ?? json;
   }
 
@@ -546,45 +1002,41 @@
     el.className = `alert alert-${type} small`;
     el.textContent = msg;
   }
-
   function hideAlert(elId) { $(elId).className = 'alert d-none small'; }
 
-  // ─── Auth state ───────────────────────────────────────────────────────────
+  const DIFF_COLOR = { BEGINNER:'success', ELEMENTARY:'info', INTERMEDIATE:'warning', ADVANCED:'danger' };
+  const TYPE_COLOR = { VOCABULARY:'primary', LISTENING:'info', VIDEO_CONTEXT:'warning', IMAGE_CONTEXT:'success', SENTENCE_BUILDER:'secondary' };
+
+  // ─── Edit cache — avoids JSON.stringify in onclick attributes ─────────────
+  // (double quotes inside JSON break HTML attribute parsing)
+  const _ec = {};  // id → object
+  function cache(obj) { _ec[obj.id] = obj; return obj.id; }
+
+  // ─── Auth state ────────────────────────────────────────────────────────────
   onAuthStateChanged(auth, async user => {
-    $('login-section').style.display  = user ? 'none'  : 'flex';
-    $('app-section').style.display    = user ? 'block' : 'none';
+    $('login-section').style.display = user ? 'none' : 'flex';
+    $('app-section').style.display   = user ? 'block' : 'none';
     if (user) {
       $('nav-user').textContent = user.email;
-
-      // Load profile to show role and check permissions
       try {
         const profile = await api('/profile');
         const role = profile.role ?? 'USER';
         $('nav-role').textContent = role;
         $('nav-role').className   = `badge bg-${role === 'ADMIN' ? 'success' : role === 'CONTENT_MANAGER' ? 'warning' : 'secondary'}`;
-
         if (role !== 'ADMIN') {
           $('role-warning').classList.remove('d-none');
-          if (role === 'CONTENT_MANAGER') {
-            $('role-warning-text').textContent =
-              `Вы вошли как CONTENT_MANAGER. Управление пользователями недоступно — требуется роль ADMIN. ` +
-              `Упражнения и медиа доступны.`;
-          } else {
-            $('role-warning-text').textContent =
-              `Вы вошли как USER (${user.email}). Многие функции недоступны. ` +
-              `Для получения роли ADMIN выполните в БД: UPDATE users SET role = 'ADMIN' WHERE email = '${user.email}';`;
-          }
+          $('role-warning-text').textContent = role === 'CONTENT_MANAGER'
+            ? `Вы вошли как CONTENT_MANAGER. Управление пользователями недоступно — требуется роль ADMIN.`
+            : `Вы вошли как USER (${user.email}). Для получения роли ADMIN выполните: UPDATE users SET role = 'ADMIN' WHERE email = '${user.email}';`;
         } else {
           $('role-warning').classList.add('d-none');
         }
-      } catch (profileErr) {
+      } catch (e) {
         $('nav-role').textContent = '?';
         $('nav-role').className   = 'badge bg-danger';
         $('role-warning').classList.remove('d-none');
-        $('role-warning-text').textContent =
-          `Не удалось загрузить профиль: ${profileErr.message}. Проверьте, запущен ли сервер и правильный ли URL.`;
+        $('role-warning-text').textContent = `Не удалось загрузить профиль: ${e.message}`;
       }
-
       loadExercises();
       loadUsers();
     } else {
@@ -593,49 +1045,56 @@
     }
   });
 
-  // ─── Login ────────────────────────────────────────────────────────────────
+  // ─── Login ─────────────────────────────────────────────────────────────────
   $('login-btn').addEventListener('click', async () => {
     hideAlert('login-error');
     $('login-spinner').classList.remove('d-none');
     try {
-      await signInWithEmailAndPassword(
-        auth,
-        $('login-email').value.trim(),
-        $('login-password').value,
-      );
+      await signInWithEmailAndPassword(auth, $('login-email').value.trim(), $('login-password').value);
     } catch (e) {
       showAlert('login-error', e.message);
     } finally {
       $('login-spinner').classList.add('d-none');
     }
   });
+  $('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') $('login-btn').click(); });
+  $('logout-btn').addEventListener('click', () => signOut(auth));
 
-  $('login-password').addEventListener('keydown', e => {
-    if (e.key === 'Enter') $('login-btn').click();
+  // ══════════════════════════════════════════════════════════════════════════
+  // SHARED DELETE MODAL
+  // ══════════════════════════════════════════════════════════════════════════
+  let _deleteUrl = null;
+  let _deleteCallback = null;
+
+  window.openDeleteFor = (url, label, callback) => {
+    _deleteUrl = url;
+    _deleteCallback = callback;
+    $('delete-label').textContent = label ? `"${label}"` : '';
+    new bootstrap.Modal($('deleteModal')).show();
+  };
+
+  $('delete-confirm-btn').addEventListener('click', async () => {
+    if (!_deleteUrl) return;
+    try {
+      await api(_deleteUrl, { method: 'DELETE' });
+      bootstrap.Modal.getInstance($('deleteModal')).hide();
+      if (_deleteCallback) _deleteCallback();
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      _deleteUrl = null;
+      _deleteCallback = null;
+    }
   });
 
-  $('logout-btn').addEventListener('click', () => signOut(auth));
+  // backward compat for exercise delete (inline onclick)
+  window.openDelete = id => window.openDeleteFor(`/admin/exercises/${id}`, `exercise #${id.slice(0,8)}`, () => loadExercises(currentPage));
 
   // ══════════════════════════════════════════════════════════════════════════
   // EXERCISES
   // ══════════════════════════════════════════════════════════════════════════
-
   let currentPage = 0;
   const PAGE_SIZE = 15;
-
-  const TYPE_COLOR = {
-    VOCABULARY:       'primary',
-    LISTENING:        'info',
-    VIDEO_CONTEXT:    'warning',
-    IMAGE_CONTEXT:    'success',
-    SENTENCE_BUILDER: 'secondary',
-  };
-  const DIFF_COLOR = {
-    BEGINNER:     'success',
-    ELEMENTARY:   'info',
-    INTERMEDIATE: 'warning',
-    ADVANCED:     'danger',
-  };
 
   async function loadExercises(page = 0) {
     currentPage = page;
@@ -644,64 +1103,39 @@
     const diff = $('filter-difficulty').value;
     if (type) params.set('type', type);
     if (diff) params.set('difficulty', diff);
-
-    $('ex-tbody').innerHTML =
-      '<tr><td colspan="5" class="text-center text-muted py-4">' +
-      '<span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
+    $('ex-tbody').innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
     hideAlert('ex-error');
-
     try {
       const data = await api(`/exercises?${params}`);
-      if (!data || typeof data !== 'object') {
-        throw new Error(`Неожиданный формат ответа: ${JSON.stringify(data)}`);
+      if (!data || typeof data !== 'object') throw new Error(`Неожиданный формат: ${JSON.stringify(data)}`);
+      const { content, page: pg, totalPages, totalElements, last } = data;
+      if (!content?.length) {
+        $('ex-tbody').innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No exercises found</td></tr>';
+      } else {
+        $('ex-tbody').innerHTML = content.map(ex => {
+          const tc = TYPE_COLOR[ex.type] || 'secondary';
+          const dc = DIFF_COLOR[ex.difficultyLevel] || 'secondary';
+          const date = ex.createdAt ? new Date(ex.createdAt).toLocaleDateString() : '—';
+          const q = (ex.question||'').length > 60 ? ex.question.slice(0,60)+'…' : (ex.question||'—');
+          return `<tr>
+            <td title="${ex.question??''}">${q}</td>
+            <td><span class="badge bg-${tc} type-badge">${ex.type}</span></td>
+            <td><span class="badge bg-${dc} type-badge">${ex.difficultyLevel}</span></td>
+            <td class="text-muted small">${date}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary me-1" onclick="openEdit('${cache(ex)}')"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-danger" onclick="openDelete('${ex.id}')"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>`;
+        }).join('');
       }
-      renderExercises(data);
+      $('ex-info').textContent = `Page ${(pg??0)+1} of ${totalPages??1} · ${totalElements??0} total`;
+      $('ex-prev').disabled = (pg??0) === 0;
+      $('ex-next').disabled = !!last;
     } catch (e) {
-      $('ex-tbody').innerHTML =
-        '<tr><td colspan="5" class="text-center text-danger py-4">' +
-        '<i class="bi bi-exclamation-triangle me-2"></i>Ошибка загрузки — см. сообщение выше</td></tr>';
-      showAlert('ex-error',
-        `Ошибка загрузки упражнений: ${e.message}. ` +
-        `Убедитесь, что сервер запущен и вы авторизованы.`);
+      $('ex-tbody').innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle me-2"></i>Ошибка — см. выше</td></tr>';
+      showAlert('ex-error', `Ошибка загрузки: ${e.message}`);
     }
-  }
-
-  // FIX: PageResponse uses field "page" (not "number" like Spring's default Page).
-  function renderExercises(data) {
-    const { content, page, totalPages, totalElements, last } = data;
-
-    if (!content || !content.length) {
-      $('ex-tbody').innerHTML =
-        '<tr><td colspan="5" class="text-center text-muted py-4">No exercises found</td></tr>';
-    } else {
-      $('ex-tbody').innerHTML = content.map(ex => {
-        const tc   = TYPE_COLOR[ex.type] || 'secondary';
-        const dc   = DIFF_COLOR[ex.difficultyLevel] || 'secondary';
-        const date = ex.createdAt ? new Date(ex.createdAt).toLocaleDateString() : '—';
-        const q    = (ex.question || '').length > 60
-                       ? ex.question.slice(0, 60) + '…'
-                       : (ex.question || '—');
-        return `<tr>
-          <td title="${ex.question ?? ''}">${q}</td>
-          <td><span class="badge bg-${tc} type-badge">${ex.type}</span></td>
-          <td><span class="badge bg-${dc} type-badge">${ex.difficultyLevel}</span></td>
-          <td class="text-muted small">${date}</td>
-          <td class="text-end">
-            <button class="btn btn-sm btn-outline-primary me-1" onclick="openEdit('${ex.id}', ${JSON.stringify(ex).replace(/'/g, "\\'")})">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="openDelete('${ex.id}')">
-              <i class="bi bi-trash"></i>
-            </button>
-          </td>
-        </tr>`;
-      }).join('');
-    }
-
-    // "page" is 0-based; display as 1-based
-    $('ex-info').textContent = `Page ${(page ?? 0) + 1} of ${totalPages ?? 1} · ${totalElements ?? 0} total`;
-    $('ex-prev').disabled = (page ?? 0) === 0;
-    $('ex-next').disabled = !!last;
   }
 
   $('filter-btn').addEventListener('click', () => loadExercises(0));
@@ -709,67 +1143,40 @@
   $('ex-prev').addEventListener('click', () => loadExercises(currentPage - 1));
   $('ex-next').addEventListener('click', () => loadExercises(currentPage + 1));
 
-  // ── Create — type fields toggle ───────────────────────────────────────────
   function syncTypeFields() {
     const type = $('c-type').value;
     document.querySelectorAll('.type-section').forEach(el => el.classList.add('d-none'));
     $(`sec-${type}`)?.classList.remove('d-none');
     $('sec-options').classList.toggle('d-none', type === 'SENTENCE_BUILDER');
   }
-
   $('c-type').addEventListener('change', syncTypeFields);
 
-  // ── Create exercise ───────────────────────────────────────────────────────
   $('create-btn').addEventListener('click', async () => {
     hideAlert('create-alert');
     $('create-spinner').classList.remove('d-none');
-
-    const csv = id => {
-      const v = $(id).value.trim();
-      return v ? v.split(',').map(s => s.trim()).filter(Boolean) : undefined;
-    };
+    const csv = id => { const v=$(id).value.trim(); return v ? v.split(',').map(s=>s.trim()).filter(Boolean) : undefined; };
     const str = id => $(id).value.trim() || undefined;
     const num = id => $(id).value !== '' ? Number($(id).value) : undefined;
-
     const body = {
-      type:            $('c-type').value,
-      difficultyLevel: $('c-difficulty').value,
-      question:        str('c-question'),
-      explanation:     str('c-explanation'),
-      word:            str('c-word'),
-      translation:     str('c-translation'),
-      audioUrl:        str('c-audioUrl'),
-      transcript:      str('c-transcript'),
-      videoUrl:        str('c-videoUrl'),
-      startTime:       num('c-startTime'),
-      endTime:         num('c-endTime'),
-      imageUrl:        str('c-imageUrl'),
-      correctSentence: str('c-correctSentence'),
-      shuffledWords:   csv('c-shuffledWords'),
-      options:         csv('c-options'),
-      correctAnswer:   str('c-correctAnswer'),
+      type: $('c-type').value, difficultyLevel: $('c-difficulty').value,
+      question: str('c-question'), explanation: str('c-explanation'),
+      word: str('c-word'), translation: str('c-translation'),
+      audioUrl: str('c-audioUrl'), transcript: str('c-transcript'),
+      videoUrl: str('c-videoUrl'), startTime: num('c-startTime'), endTime: num('c-endTime'),
+      imageUrl: str('c-imageUrl'), correctSentence: str('c-correctSentence'),
+      shuffledWords: csv('c-shuffledWords'), options: csv('c-options'), correctAnswer: str('c-correctAnswer'),
     };
-
     try {
-      await api('/admin/exercises', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      await api('/admin/exercises', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
       bootstrap.Modal.getInstance($('createModal')).hide();
       loadExercises(currentPage);
-    } catch (e) {
-      showAlert('create-alert', e.message);
-    } finally {
-      $('create-spinner').classList.add('d-none');
-    }
+    } catch (e) { showAlert('create-alert', e.message); }
+    finally { $('create-spinner').classList.add('d-none'); }
   });
 
-  // ── Edit exercise ─────────────────────────────────────────────────────────
-  // Expose globally so onclick in dynamic HTML can call it
-  window.openEdit = (id, ex) => {
+  window.openEdit = (id) => {
+    const ex = _ec[id] || {};
     $('edit-id').value = id;
-    // Pre-populate fields with current values
     $('edit-question').value      = ex?.question     ?? '';
     $('edit-explanation').value   = ex?.explanation  ?? '';
     $('edit-options').value       = Array.isArray(ex?.options) ? ex.options.join(', ') : '';
@@ -783,204 +1190,745 @@
     hideAlert('edit-alert');
     $('edit-spinner').classList.remove('d-none');
     const id = $('edit-id').value;
-
     const optStr = $('edit-options').value.trim();
     const body = {
       difficultyLevel: $('edit-difficulty').value || undefined,
-      question:        $('edit-question').value.trim() || undefined,
-      explanation:     $('edit-explanation').value.trim() || undefined,
-      options:         optStr ? optStr.split(',').map(s => s.trim()).filter(Boolean) : undefined,
-      correctAnswer:   $('edit-correctAnswer').value.trim() || undefined,
+      question: $('edit-question').value.trim() || undefined,
+      explanation: $('edit-explanation').value.trim() || undefined,
+      options: optStr ? optStr.split(',').map(s=>s.trim()).filter(Boolean) : undefined,
+      correctAnswer: $('edit-correctAnswer').value.trim() || undefined,
     };
-
     try {
-      await api(`/admin/exercises/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      await api(`/admin/exercises/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
       bootstrap.Modal.getInstance($('editModal')).hide();
       loadExercises(currentPage);
-    } catch (e) {
-      showAlert('edit-alert', e.message);
-    } finally {
-      $('edit-spinner').classList.add('d-none');
-    }
+    } catch (e) { showAlert('edit-alert', e.message); }
+    finally { $('edit-spinner').classList.add('d-none'); }
   });
 
-  // ── Delete exercise ───────────────────────────────────────────────────────
-  let deleteTargetId = null;
+  // ══════════════════════════════════════════════════════════════════════════
+  // ARTICLES
+  // ══════════════════════════════════════════════════════════════════════════
+  let artPage = 0;
 
-  window.openDelete = id => {
-    deleteTargetId = id;
-    new bootstrap.Modal($('deleteModal')).show();
-  };
-
-  $('delete-confirm-btn').addEventListener('click', async () => {
-    if (!deleteTargetId) return;
+  async function loadArticles(page = 0) {
+    artPage = page;
+    const params = new URLSearchParams({ page, size: PAGE_SIZE });
+    const diff = $('art-filter-diff').value;
+    if (diff) params.set('difficulty', diff);
+    $('art-tbody').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
+    hideAlert('art-error');
     try {
-      await api(`/admin/exercises/${deleteTargetId}`, { method: 'DELETE' });
-      bootstrap.Modal.getInstance($('deleteModal')).hide();
-      loadExercises(currentPage);
+      const data = await api(`/articles?${params}`);
+      const { content, page: pg, totalPages, totalElements, last } = data;
+      if (!content?.length) {
+        $('art-tbody').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No articles found</td></tr>';
+      } else {
+        $('art-tbody').innerHTML = content.map(a => {
+          const dc = DIFF_COLOR[a.difficultyLevel] || 'secondary';
+          const date = a.createdAt ? new Date(a.createdAt).toLocaleDateString() : '—';
+          const title = (a.title||'').length > 40 ? a.title.slice(0,40)+'…' : (a.title||'—');
+          const titleKz = (a.titleKz||'').length > 30 ? a.titleKz.slice(0,30)+'…' : (a.titleKz||'—');
+          return `<tr>
+            <td title="${a.title??''}">${title}</td>
+            <td class="text-muted small">${titleKz}</td>
+            <td><span class="badge bg-${dc} type-badge">${a.difficultyLevel}</span></td>
+            <td class="text-center">${a.imageUrl ? '<i class="bi bi-image text-success"></i>' : '<span class="text-muted">—</span>'}</td>
+            <td class="text-muted small">${date}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditArticle('${cache(a)}')"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-danger" onclick="openDeleteFor('/admin/articles/${a.id}','${(a.title||'').replace(/'/g,'\\\'').replace(/"/g,'&quot;')}',loadArticles)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>`;
+        }).join('');
+      }
+      $('art-info').textContent = `Page ${(pg??0)+1} of ${totalPages??1} · ${totalElements??0} total`;
+      $('art-prev').disabled = (pg??0) === 0;
+      $('art-next').disabled = !!last;
     } catch (e) {
-      alert(e.message);
-    } finally {
-      deleteTargetId = null;
+      $('art-tbody').innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Ошибка — см. выше</td></tr>';
+      showAlert('art-error', `Ошибка загрузки: ${e.message}`);
     }
+  }
+
+  $('art-filter-btn').addEventListener('click', () => loadArticles(0));
+  $('art-refresh-btn').addEventListener('click', () => loadArticles(artPage));
+  $('art-prev').addEventListener('click', () => loadArticles(artPage - 1));
+  $('art-next').addEventListener('click', () => loadArticles(artPage + 1));
+  $('articles-tab-btn').addEventListener('shown.bs.tab', () => loadArticles(0));
+
+  $('art-create-btn').addEventListener('click', async () => {
+    hideAlert('art-create-alert');
+    $('art-create-spinner').classList.remove('d-none');
+    const body = {
+      title: $('art-title').value.trim(),
+      titleKz: $('art-titleKz').value.trim() || undefined,
+      content: $('art-content').value.trim(),
+      contentKz: $('art-contentKz').value.trim() || undefined,
+      difficultyLevel: $('art-difficulty').value,
+      imageUrl: $('art-imageUrl').value.trim() || undefined,
+    };
+    if (!body.title || !body.content) {
+      showAlert('art-create-alert', 'Title and Content (EN) are required.');
+      $('art-create-spinner').classList.add('d-none');
+      return;
+    }
+    try {
+      await api('/admin/articles', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      bootstrap.Modal.getInstance($('createArticleModal')).hide();
+      loadArticles(artPage);
+      // reset form
+      ['art-title','art-titleKz','art-content','art-contentKz','art-imageUrl'].forEach(id => $(id).value = '');
+    } catch (e) { showAlert('art-create-alert', e.message); }
+    finally { $('art-create-spinner').classList.add('d-none'); }
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // FLASHCARDS
+  // ══════════════════════════════════════════════════════════════════════════
+  let fcPage = 0;
+
+  async function loadFlashcards(page = 0) {
+    fcPage = page;
+    const params = new URLSearchParams({ page, size: PAGE_SIZE });
+    $('fc-tbody').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
+    hideAlert('fc-error');
+    try {
+      const data = await api(`/flashcards?${params}`);
+      const { content, page: pg, totalPages, totalElements, last } = data;
+      if (!content?.length) {
+        $('fc-tbody').innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No flashcards found</td></tr>';
+      } else {
+        $('fc-tbody').innerHTML = content.map(f => {
+          const audio = f.audioUrl
+            ? `<a href="${f.audioUrl}" target="_blank" class="btn btn-sm btn-outline-info py-0"><i class="bi bi-play-circle"></i></a>`
+            : '<span class="text-muted">—</span>';
+          return `<tr>
+            <td>${f.wordRu||'—'}</td>
+            <td>${f.wordKz||'—'}</td>
+            <td class="text-muted small">${f.transcription||'—'}</td>
+            <td class="text-muted small" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.exampleSentence||''}">${f.exampleSentence||'—'}</td>
+            <td>${audio}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditFlashcard('${cache(f)}')"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-danger" onclick="openDeleteFor('/admin/flashcards/${f.id}','${(f.wordRu||'').replace(/'/g,"\\'")}',loadFlashcards)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>`;
+        }).join('');
+      }
+      $('fc-info').textContent = `Page ${(pg??0)+1} of ${totalPages??1} · ${totalElements??0} total`;
+      $('fc-prev').disabled = (pg??0) === 0;
+      $('fc-next').disabled = !!last;
+    } catch (e) {
+      $('fc-tbody').innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Ошибка — см. выше</td></tr>';
+      showAlert('fc-error', `Ошибка загрузки: ${e.message}`);
+    }
+  }
+
+  $('fc-refresh-btn').addEventListener('click', () => loadFlashcards(fcPage));
+  $('fc-prev').addEventListener('click', () => loadFlashcards(fcPage - 1));
+  $('fc-next').addEventListener('click', () => loadFlashcards(fcPage + 1));
+  $('flashcards-tab-btn').addEventListener('shown.bs.tab', () => loadFlashcards(0));
+
+  $('fc-evict-btn').addEventListener('click', async () => {
+    try {
+      await api('/admin/flashcards/cache/evict', { method:'POST' });
+      hideAlert('fc-error');
+      $('fc-success').className = 'alert alert-success small';
+      $('fc-success').textContent = 'Redis cache evicted successfully.';
+      setTimeout(() => $('fc-success').className = 'alert alert-success d-none small', 3000);
+    } catch (e) { showAlert('fc-error', `Cache evict failed: ${e.message}`); }
+  });
+
+  $('fc-create-btn').addEventListener('click', async () => {
+    hideAlert('fc-create-alert');
+    $('fc-create-spinner').classList.remove('d-none');
+    const body = {
+      wordRu: $('fc-wordRu').value.trim(),
+      wordKz: $('fc-wordKz').value.trim(),
+      transcription: $('fc-transcription').value.trim() || undefined,
+      exampleSentence: $('fc-example').value.trim() || undefined,
+      audioUrl: $('fc-audioUrl').value.trim() || undefined,
+    };
+    if (!body.wordRu || !body.wordKz) {
+      showAlert('fc-create-alert', 'Word (RU) and Word (KZ) are required.');
+      $('fc-create-spinner').classList.add('d-none');
+      return;
+    }
+    try {
+      await api('/admin/flashcards', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      bootstrap.Modal.getInstance($('createFlashcardModal')).hide();
+      loadFlashcards(fcPage);
+      ['fc-wordRu','fc-wordKz','fc-transcription','fc-example','fc-audioUrl'].forEach(id => $(id).value = '');
+    } catch (e) { showAlert('fc-create-alert', e.message); }
+    finally { $('fc-create-spinner').classList.add('d-none'); }
+  });
+
+  // expose for delete callbacks
+  window.loadFlashcards = loadFlashcards;
+  window.loadArticles   = loadArticles;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // GRAMMAR
+  // ══════════════════════════════════════════════════════════════════════════
+  async function loadGrammar() {
+    $('gr-tbody').innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
+    hideAlert('gr-error');
+    try {
+      const rules = await api('/grammar');
+      if (!rules?.length) {
+        $('gr-tbody').innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No grammar rules found</td></tr>';
+      } else {
+        $('gr-tbody').innerHTML = rules.map(r => {
+          const exp = (r.explanation||'').length > 80 ? r.explanation.slice(0,80)+'…' : (r.explanation||'—');
+          const exCount = Array.isArray(r.examples) ? r.examples.length : 0;
+          return `<tr>
+            <td class="fw-semibold">${r.title||'—'}</td>
+            <td class="text-muted small" title="${r.explanation||''}">${exp}</td>
+            <td><span class="badge bg-secondary">${exCount}</span></td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditGrammar('${cache(r)}')"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-danger" onclick="openDeleteFor('/admin/grammar/${r.id}','${(r.title||'').replace(/'/g,"\\'")}',loadGrammar)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>`;
+        }).join('');
+      }
+      $('gr-info').textContent = `${rules?.length ?? 0} rules total`;
+    } catch (e) {
+      $('gr-tbody').innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Ошибка — см. выше</td></tr>';
+      showAlert('gr-error', `Ошибка загрузки: ${e.message}`);
+    }
+  }
+
+  $('gr-refresh-btn').addEventListener('click', loadGrammar);
+  $('grammar-tab-btn').addEventListener('shown.bs.tab', loadGrammar);
+  window.loadGrammar = loadGrammar;
+
+  $('gr-create-btn').addEventListener('click', async () => {
+    hideAlert('gr-create-alert');
+    $('gr-create-spinner').classList.remove('d-none');
+    const exText = $('gr-examples').value.trim();
+    const body = {
+      title: $('gr-title').value.trim(),
+      explanation: $('gr-explanation').value.trim(),
+      examples: exText ? exText.split('\n').map(s=>s.trim()).filter(Boolean) : [],
+    };
+    if (!body.title || !body.explanation) {
+      showAlert('gr-create-alert', 'Title and Explanation are required.');
+      $('gr-create-spinner').classList.add('d-none');
+      return;
+    }
+    try {
+      await api('/admin/grammar', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      bootstrap.Modal.getInstance($('createGrammarModal')).hide();
+      loadGrammar();
+      ['gr-title','gr-explanation','gr-examples'].forEach(id => $(id).value = '');
+    } catch (e) { showAlert('gr-create-alert', e.message); }
+    finally { $('gr-create-spinner').classList.add('d-none'); }
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // COURSES
+  // ══════════════════════════════════════════════════════════════════════════
+  let coursesCache = [];
+
+  async function loadCourses() {
+    $('course-tbody').innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
+    hideAlert('course-error');
+    try {
+      coursesCache = await api('/courses') ?? [];
+      if (!coursesCache.length) {
+        $('course-tbody').innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No courses found</td></tr>';
+      } else {
+        $('course-tbody').innerHTML = coursesCache.map(c => {
+          const desc = (c.description||'').length > 50 ? c.description.slice(0,50)+'…' : (c.description||'—');
+          return `<tr>
+            <td class="id-cell" onclick="navigator.clipboard.writeText('${c.id}')" title="Click to copy">${c.id}</td>
+            <td class="fw-semibold">${c.title||'—'}</td>
+            <td class="text-muted small">${desc}</td>
+            <td>${c.orderIndex??'—'}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditCourse('${cache(c)}')"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-danger" onclick="openDeleteFor('/admin/courses/${c.id}','${(c.title||'').replace(/'/g,"\\'")}',() => { loadCourses(); populateCourseSelects(); })">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>`;
+        }).join('');
+      }
+      populateCourseSelects();
+    } catch (e) {
+      $('course-tbody').innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">Ошибка — см. выше</td></tr>';
+      showAlert('course-error', `Ошибка загрузки: ${e.message}`);
+    }
+  }
+
+  function populateCourseSelects() {
+    const opts = coursesCache.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+    $('level-course-filter').innerHTML = '<option value="">— select course —</option>' + opts;
+    $('level-courseId').innerHTML = '<option value="">— select course —</option>' + opts;
+  }
+
+  $('course-refresh-btn').addEventListener('click', loadCourses);
+  $('courses-tab-btn').addEventListener('shown.bs.tab', loadCourses);
+
+  $('course-create-btn').addEventListener('click', async () => {
+    hideAlert('course-create-alert');
+    $('course-create-spinner').classList.remove('d-none');
+    const body = {
+      title: $('course-title').value.trim(),
+      description: $('course-desc').value.trim() || undefined,
+      orderIndex: Number($('course-order').value) || 0,
+    };
+    if (!body.title) {
+      showAlert('course-create-alert', 'Title is required.');
+      $('course-create-spinner').classList.add('d-none');
+      return;
+    }
+    try {
+      await api('/admin/courses', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      bootstrap.Modal.getInstance($('createCourseModal')).hide();
+      loadCourses();
+      ['course-title','course-desc'].forEach(id => $(id).value = '');
+      $('course-order').value = '0';
+    } catch (e) { showAlert('course-create-alert', e.message); }
+    finally { $('course-create-spinner').classList.add('d-none'); }
+  });
+
+  // ─── Course Levels ────────────────────────────────────────────────────────
+  async function loadLevels(courseId) {
+    if (!courseId) {
+      $('level-tbody').innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Select a course to view its levels</td></tr>';
+      return;
+    }
+    $('level-tbody').innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
+    hideAlert('level-error');
+    try {
+      const levels = await api(`/courses/${courseId}/levels`) ?? [];
+      if (!levels.length) {
+        $('level-tbody').innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No levels found for this course</td></tr>';
+      } else {
+        $('level-tbody').innerHTML = levels.map(l => {
+          const dc = l.difficultyLevel ? `<span class="badge bg-${DIFF_COLOR[l.difficultyLevel]||'secondary'} type-badge">${l.difficultyLevel}</span>` : '<span class="text-muted">—</span>';
+          const lessonRows = Array.isArray(l.lessons) && l.lessons.length
+            ? l.lessons.map(ls => `<tr class="table-light">
+                <td class="id-cell ps-4 text-secondary" onclick="navigator.clipboard.writeText('${ls.id}')" title="Lesson ID (click to copy)">↳ ${ls.id}</td>
+                <td class="small ps-4">${ls.title||'—'} <span class="badge bg-light text-dark border ms-1">${ls.xpReward??0} XP</span></td>
+                <td class="small text-muted">lesson</td>
+                <td class="small">${ls.orderIndex??'—'}</td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditLesson('${cache(ls)}','${courseId}')"><i class="bi bi-pencil"></i></button>
+                  <button class="btn btn-sm btn-outline-danger" onclick="openDeleteFor('/admin/lessons/${ls.id}','${(ls.title||'').replace(/'/g,"\\'")}',() => loadLevels('${courseId}'))"><i class="bi bi-trash"></i></button>
+                </td>
+              </tr>`).join('')
+            : '';
+          return `<tr>
+            <td class="id-cell" onclick="navigator.clipboard.writeText('${l.id}');this.classList.add('text-success');setTimeout(()=>this.classList.remove('text-success'),800)" title="Click to copy">${l.id}</td>
+            <td class="fw-semibold">${l.title||'—'}</td>
+            <td>${dc}</td>
+            <td>${l.orderIndex??'—'}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditLevel('${cache(l)}','${courseId}')"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-danger" onclick="openDeleteFor('/admin/course-levels/${l.id}','${(l.title||'').replace(/'/g,"\\'")}',() => loadLevels('${courseId}'))">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>${lessonRows}`;
+        }).join('');
+      }
+    } catch (e) {
+      $('level-tbody').innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">Ошибка — см. выше</td></tr>';
+      showAlert('level-error', `Ошибка загрузки уровней: ${e.message}`);
+    }
+  }
+
+  $('level-load-btn').addEventListener('click', () => loadLevels($('level-course-filter').value));
+
+  $('level-create-btn').addEventListener('click', async () => {
+    hideAlert('level-create-alert');
+    $('level-create-spinner').classList.remove('d-none');
+    const diff = $('level-difficulty').value;
+    const body = {
+      courseId: $('level-courseId').value,
+      title: $('level-title').value.trim(),
+      orderIndex: Number($('level-order').value) || 0,
+      difficultyLevel: diff || undefined,
+    };
+    if (!body.courseId || !body.title) {
+      showAlert('level-create-alert', 'Course and Title are required.');
+      $('level-create-spinner').classList.add('d-none');
+      return;
+    }
+    try {
+      await api('/admin/course-levels', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      bootstrap.Modal.getInstance($('createLevelModal')).hide();
+      // reload levels for the currently selected course
+      const filterCourse = $('level-course-filter').value || body.courseId;
+      loadLevels(filterCourse);
+      $('level-title').value = '';
+      $('level-order').value = '0';
+    } catch (e) { showAlert('level-create-alert', e.message); }
+    finally { $('level-create-spinner').classList.add('d-none'); }
+  });
+
+  // ─── Lessons ──────────────────────────────────────────────────────────────
+  $('lesson-create-btn').addEventListener('click', async () => {
+    hideAlert('lesson-create-alert');
+    $('lesson-create-spinner').classList.remove('d-none');
+    const body = {
+      levelId: $('lesson-levelId').value.trim(),
+      title: $('lesson-title').value.trim(),
+      orderIndex: Number($('lesson-order').value) || 0,
+      xpReward: Number($('lesson-xp').value) || 10,
+    };
+    if (!body.levelId || !body.title) {
+      showAlert('lesson-create-alert', 'Level ID and Title are required.');
+      $('lesson-create-spinner').classList.add('d-none');
+      return;
+    }
+    try {
+      await api('/admin/lessons', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      bootstrap.Modal.getInstance($('createLessonModal')).hide();
+      showAlert('lesson-create-alert', 'Lesson created successfully!', 'success');
+      ['lesson-levelId','lesson-title'].forEach(id => $(id).value = '');
+      $('lesson-order').value = '0';
+      $('lesson-xp').value = '10';
+    } catch (e) { showAlert('lesson-create-alert', e.message); }
+    finally { $('lesson-create-spinner').classList.add('d-none'); }
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // DAILY CHALLENGES
+  // ══════════════════════════════════════════════════════════════════════════
+  $('ch-create-btn').addEventListener('click', async () => {
+    hideAlert('ch-alert');
+    $('ch-spinner').classList.remove('d-none');
+    const lettersRaw = $('ch-letters').value.trim();
+    const imagesRaw  = $('ch-images').value.trim();
+    const body = {
+      challengeDate: $('ch-date').value,
+      correctWord:   $('ch-word').value.trim(),
+      letters:  lettersRaw ? lettersRaw.split(',').map(s=>s.trim()).filter(Boolean) : [],
+      imageUrls: imagesRaw ? imagesRaw.split('\n').map(s=>s.trim()).filter(Boolean) : [],
+    };
+    if (!body.challengeDate || !body.correctWord || !body.letters.length || !body.imageUrls.length) {
+      showAlert('ch-alert', 'All fields are required.');
+      $('ch-spinner').classList.add('d-none');
+      return;
+    }
+    try {
+      await api('/admin/daily-challenges', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      showAlert('ch-alert', `Daily challenge for ${body.challengeDate} created successfully!`, 'success');
+      ['ch-word','ch-letters','ch-images'].forEach(id => $(id).value = '');
+    } catch (e) { showAlert('ch-alert', e.message); }
+    finally { $('ch-spinner').classList.add('d-none'); }
   });
 
   // ══════════════════════════════════════════════════════════════════════════
   // MEDIA UPLOAD
   // ══════════════════════════════════════════════════════════════════════════
-
   $('media-upload-btn').addEventListener('click', async () => {
     const file = $('media-file').files[0];
     if (!file) { showAlert('media-alert', 'Please select a file.', 'warning'); return; }
-
     hideAlert('media-alert');
     $('media-result').classList.add('d-none');
     $('media-spinner').classList.remove('d-none');
-
     const form = new FormData();
     form.append('file', file);
     form.append('mediaType', $('media-type').value);
-
     try {
       const t = await bearerToken();
       const res = await fetch(`${API}/admin/media/upload`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${t}` },
-        body: form,
+        method:'POST', headers:{'Authorization':`Bearer ${t}`}, body:form,
       });
       if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
       const data = await res.json();
-
       $('media-result-body').innerHTML = Object.entries(data)
-        .map(([k, v]) => `<tr>
-          <th class="text-muted fw-normal small ps-3 py-2" style="width:35%">${k}</th>
-          <td class="small py-2 text-break">${v ?? '—'}</td>
-        </tr>`).join('');
+        .map(([k,v]) => `<tr><th class="text-muted fw-normal small ps-3 py-2" style="width:35%">${k}</th><td class="small py-2 text-break">${v??'—'}</td></tr>`).join('');
       $('media-result').classList.remove('d-none');
-    } catch (e) {
-      showAlert('media-alert', e.message);
-    } finally {
-      $('media-spinner').classList.add('d-none');
-    }
+    } catch (e) { showAlert('media-alert', e.message); }
+    finally { $('media-spinner').classList.add('d-none'); }
   });
 
   // ══════════════════════════════════════════════════════════════════════════
   // USERS
   // ══════════════════════════════════════════════════════════════════════════
-
-  // Auto-load users when tab is clicked
   $('users-tab-btn').addEventListener('shown.bs.tab', () => {
-    // Only reload if currently showing "Loading users..." (i.e. first visit)
-    const tbody = $('users-tbody');
-    if (tbody.querySelector('.spinner-border')) loadUsers();
+    if ($('users-tbody').querySelector('.spinner-border')) loadUsers();
   });
-
   $('user-filter-btn').addEventListener('click', loadUsers);
   $('user-refresh-btn').addEventListener('click', loadUsers);
 
   async function loadUsers() {
     const role = $('user-role-filter').value;
     hideAlert('users-error');
-    $('users-tbody').innerHTML =
-      '<tr><td colspan="7" class="text-center text-muted py-4">' +
-      '<span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
-
+    $('users-tbody').innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</td></tr>';
     try {
       let users;
       if (role) {
         users = await api(`/admin/users?role=${role}`);
       } else {
-        // Load all roles in parallel — collect both results and errors
         const [u, cm, a] = await Promise.allSettled([
           api('/admin/users?role=USER'),
           api('/admin/users?role=CONTENT_MANAGER'),
           api('/admin/users?role=ADMIN'),
         ]);
-
-        // Check if ALL failed (likely 403 — no ADMIN role)
-        const allFailed = [u, cm, a].every(r => r.status === 'rejected');
-        if (allFailed) {
-          // Grab the first error message
-          const firstErr = u.reason?.message || cm.reason?.message || a.reason?.message || 'Unknown error';
-          $('users-tbody').innerHTML =
-            '<tr><td colspan="7" class="text-center text-muted py-4">Failed to load. See error above.</td></tr>';
-          showAlert('users-error',
-            `Ошибка загрузки пользователей: ${firstErr}. ` +
-            `Убедитесь, что ваш аккаунт имеет роль ADMIN в базе данных.`);
+        if ([u,cm,a].every(r => r.status === 'rejected')) {
+          const msg = u.reason?.message || cm.reason?.message || a.reason?.message || 'Unknown error';
+          $('users-tbody').innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Failed to load. See error above.</td></tr>';
+          showAlert('users-error', `Ошибка загрузки пользователей: ${msg}. Убедитесь, что ваш аккаунт имеет роль ADMIN.`);
           return;
         }
-
         users = [
           ...(u.status  === 'fulfilled' ? u.value  : []),
           ...(cm.status === 'fulfilled' ? cm.value : []),
           ...(a.status  === 'fulfilled' ? a.value  : []),
         ];
       }
-
       renderUsers(users);
     } catch (e) {
-      $('users-tbody').innerHTML =
-        '<tr><td colspan="7" class="text-center text-muted py-4">Failed to load. See error above.</td></tr>';
-      showAlert('users-error',
-        `Ошибка загрузки пользователей: ${e.message}. ` +
-        `Убедитесь, что ваш аккаунт имеет роль ADMIN в базе данных.`);
+      $('users-tbody').innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Failed to load. See error above.</td></tr>';
+      showAlert('users-error', `Ошибка загрузки пользователей: ${e.message}`);
     }
   }
 
   function renderUsers(users) {
-    if (!users || !users.length) {
-      $('users-tbody').innerHTML =
-        '<tr><td colspan="7" class="text-center text-muted py-4">No users found</td></tr>';
+    if (!users?.length) {
+      $('users-tbody').innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No users found</td></tr>';
       $('users-info').textContent = '0 users';
       return;
     }
-
+    const roleColor = { ADMIN:'danger', CONTENT_MANAGER:'warning', USER:'secondary' };
     $('users-tbody').innerHTML = users.map(u => {
-      // User entity has "id" (Firebase UID), not "uid"
-      const uid  = u.id ?? u.uid ?? '';
+      const uid = u.id ?? u.uid ?? '';
       const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—';
-      const roleColor = { ADMIN: 'danger', CONTENT_MANAGER: 'warning', USER: 'secondary' };
       const rc = roleColor[u.role] ?? 'secondary';
-      const levelBadge = u.level
-        ? `<span class="badge bg-light text-dark border">${u.level}</span>`
-        : '<span class="text-muted small">—</span>';
-
+      const levelBadge = u.level ? `<span class="badge bg-light text-dark border">${u.level}</span>` : '<span class="text-muted small">—</span>';
       return `<tr>
         <td class="font-monospace small text-truncate" style="max-width:130px" title="${uid}">${uid}</td>
-        <td>${u.email ?? '—'}</td>
-        <td>${u.username ?? '—'}</td>
+        <td>${u.email??'—'}</td>
+        <td>${u.username??'—'}</td>
         <td><span class="badge bg-${rc}">${u.role}</span></td>
         <td>${levelBadge}</td>
         <td class="text-muted small">${date}</td>
         <td class="text-end">
           <select class="form-select form-select-sm d-inline-block w-auto me-1" id="role-sel-${uid}">
-            <option ${u.role==='USER'          ?'selected':''} value="USER">USER</option>
+            <option ${u.role==='USER'?'selected':''} value="USER">USER</option>
             <option ${u.role==='CONTENT_MANAGER'?'selected':''} value="CONTENT_MANAGER">CONTENT_MANAGER</option>
-            <option ${u.role==='ADMIN'         ?'selected':''} value="ADMIN">ADMIN</option>
+            <option ${u.role==='ADMIN'?'selected':''} value="ADMIN">ADMIN</option>
           </select>
           <button class="btn btn-sm btn-outline-primary" onclick="changeRole('${uid}')">Apply</button>
         </td>
       </tr>`;
     }).join('');
-
-    $('users-info').textContent = `${users.length} user${users.length !== 1 ? 's' : ''} total`;
+    $('users-info').textContent = `${users.length} user${users.length!==1?'s':''} total`;
   }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // EDIT HANDLERS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ─── Edit Article ─────────────────────────────────────────────────────────
+  window.openEditArticle = async (id) => {
+    // fetch full content (list response lacks content fields)
+    let full = _ec[id] || {};
+    try { full = await api(`/articles/${id}`); } catch {}
+    $('art-edit-id').value = full.id;
+    $('art-edit-title').value = full.title || '';
+    $('art-edit-titleKz').value = full.titleKz || '';
+    $('art-edit-content').value = full.content || '';
+    $('art-edit-contentKz').value = full.contentKz || '';
+    $('art-edit-difficulty').value = full.difficultyLevel || 'BEGINNER';
+    $('art-edit-imageUrl').value = full.imageUrl || '';
+    hideAlert('art-edit-alert');
+    new bootstrap.Modal($('editArticleModal')).show();
+  };
+
+  $('art-edit-btn').addEventListener('click', async () => {
+    hideAlert('art-edit-alert');
+    $('art-edit-spinner').classList.remove('d-none');
+    const id = $('art-edit-id').value;
+    const body = {
+      title: $('art-edit-title').value.trim() || undefined,
+      titleKz: $('art-edit-titleKz').value.trim() || undefined,
+      content: $('art-edit-content').value.trim() || undefined,
+      contentKz: $('art-edit-contentKz').value.trim() || undefined,
+      difficultyLevel: $('art-edit-difficulty').value || undefined,
+      imageUrl: $('art-edit-imageUrl').value.trim() || undefined,
+    };
+    try {
+      await api(`/admin/articles/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      bootstrap.Modal.getInstance($('editArticleModal')).hide();
+      loadArticles(artPage);
+    } catch (e) { showAlert('art-edit-alert', e.message); }
+    finally { $('art-edit-spinner').classList.add('d-none'); }
+  });
+
+  // ─── Edit Flashcard ───────────────────────────────────────────────────────
+  window.openEditFlashcard = (id) => {
+    const f = _ec[id] || {};
+    $('fc-edit-id').value = id;
+    $('fc-edit-wordRu').value = f.wordRu || '';
+    $('fc-edit-wordKz').value = f.wordKz || '';
+    $('fc-edit-transcription').value = f.transcription || '';
+    $('fc-edit-example').value = f.exampleSentence || '';
+    $('fc-edit-audioUrl').value = f.audioUrl || '';
+    hideAlert('fc-edit-alert');
+    new bootstrap.Modal($('editFlashcardModal')).show();
+  };
+
+  $('fc-edit-btn').addEventListener('click', async () => {
+    hideAlert('fc-edit-alert');
+    $('fc-edit-spinner').classList.remove('d-none');
+    const id = $('fc-edit-id').value;
+    const body = {
+      wordRu: $('fc-edit-wordRu').value.trim() || undefined,
+      wordKz: $('fc-edit-wordKz').value.trim() || undefined,
+      transcription: $('fc-edit-transcription').value.trim() || undefined,
+      exampleSentence: $('fc-edit-example').value.trim() || undefined,
+      audioUrl: $('fc-edit-audioUrl').value.trim() || undefined,
+    };
+    try {
+      await api(`/admin/flashcards/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      bootstrap.Modal.getInstance($('editFlashcardModal')).hide();
+      loadFlashcards(fcPage);
+    } catch (e) { showAlert('fc-edit-alert', e.message); }
+    finally { $('fc-edit-spinner').classList.add('d-none'); }
+  });
+
+  // ─── Edit Grammar ─────────────────────────────────────────────────────────
+  window.openEditGrammar = (id) => {
+    const r = _ec[id] || {};
+    $('gr-edit-id').value = id;
+    $('gr-edit-title').value = r.title || '';
+    $('gr-edit-explanation').value = r.explanation || '';
+    $('gr-edit-examples').value = Array.isArray(r.examples) ? r.examples.join('\n') : '';
+    hideAlert('gr-edit-alert');
+    new bootstrap.Modal($('editGrammarModal')).show();
+  };
+
+  $('gr-edit-btn').addEventListener('click', async () => {
+    hideAlert('gr-edit-alert');
+    $('gr-edit-spinner').classList.remove('d-none');
+    const id = $('gr-edit-id').value;
+    const exText = $('gr-edit-examples').value.trim();
+    const body = {
+      title: $('gr-edit-title').value.trim() || undefined,
+      explanation: $('gr-edit-explanation').value.trim() || undefined,
+      examples: exText ? exText.split('\n').map(s=>s.trim()).filter(Boolean) : undefined,
+    };
+    try {
+      await api(`/admin/grammar/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      bootstrap.Modal.getInstance($('editGrammarModal')).hide();
+      loadGrammar();
+    } catch (e) { showAlert('gr-edit-alert', e.message); }
+    finally { $('gr-edit-spinner').classList.add('d-none'); }
+  });
+
+  // ─── Edit Course ──────────────────────────────────────────────────────────
+  window.openEditCourse = (id) => {
+    const c = _ec[id] || {};
+    $('course-edit-id').value = id;
+    $('course-edit-title').value = c.title || '';
+    $('course-edit-desc').value = c.description || '';
+    $('course-edit-order').value = c.orderIndex ?? 0;
+    hideAlert('course-edit-alert');
+    new bootstrap.Modal($('editCourseModal')).show();
+  };
+
+  $('course-edit-btn').addEventListener('click', async () => {
+    hideAlert('course-edit-alert');
+    $('course-edit-spinner').classList.remove('d-none');
+    const id = $('course-edit-id').value;
+    const body = {
+      title: $('course-edit-title').value.trim() || undefined,
+      description: $('course-edit-desc').value.trim() || undefined,
+      orderIndex: $('course-edit-order').value !== '' ? Number($('course-edit-order').value) : undefined,
+    };
+    try {
+      await api(`/admin/courses/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      bootstrap.Modal.getInstance($('editCourseModal')).hide();
+      loadCourses();
+    } catch (e) { showAlert('course-edit-alert', e.message); }
+    finally { $('course-edit-spinner').classList.add('d-none'); }
+  });
+
+  // ─── Edit Course Level ────────────────────────────────────────────────────
+  window.openEditLevel = (id, courseId) => {
+    const l = _ec[id] || {};
+    $('level-edit-id').value = id;
+    $('level-edit-courseId').value = courseId;
+    $('level-edit-title').value = l.title || '';
+    $('level-edit-difficulty').value = l.difficultyLevel || '';
+    $('level-edit-order').value = l.orderIndex ?? 0;
+    hideAlert('level-edit-alert');
+    new bootstrap.Modal($('editLevelModal')).show();
+  };
+
+  $('level-edit-btn').addEventListener('click', async () => {
+    hideAlert('level-edit-alert');
+    $('level-edit-spinner').classList.remove('d-none');
+    const id = $('level-edit-id').value;
+    const courseId = $('level-edit-courseId').value;
+    const diff = $('level-edit-difficulty').value;
+    const body = {
+      title: $('level-edit-title').value.trim() || undefined,
+      orderIndex: $('level-edit-order').value !== '' ? Number($('level-edit-order').value) : undefined,
+      difficultyLevel: diff || undefined,
+    };
+    try {
+      await api(`/admin/course-levels/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      bootstrap.Modal.getInstance($('editLevelModal')).hide();
+      loadLevels(courseId);
+    } catch (e) { showAlert('level-edit-alert', e.message); }
+    finally { $('level-edit-spinner').classList.add('d-none'); }
+  });
+
+  // ─── Edit Lesson ──────────────────────────────────────────────────────────
+  window.openEditLesson = (id, courseId) => {
+    const lesson = _ec[id] || {};
+    $('lesson-edit-id').value = id;
+    $('lesson-edit-courseId').value = courseId;
+    $('lesson-edit-title').value = lesson.title || '';
+    $('lesson-edit-order').value = lesson.orderIndex ?? 0;
+    $('lesson-edit-xp').value = lesson.xpReward ?? 10;
+    hideAlert('lesson-edit-alert');
+    new bootstrap.Modal($('editLessonModal')).show();
+  };
+
+  $('lesson-edit-btn').addEventListener('click', async () => {
+    hideAlert('lesson-edit-alert');
+    $('lesson-edit-spinner').classList.remove('d-none');
+    const id = $('lesson-edit-id').value;
+    const courseId = $('lesson-edit-courseId').value;
+    const body = {
+      title: $('lesson-edit-title').value.trim() || undefined,
+      orderIndex: $('lesson-edit-order').value !== '' ? Number($('lesson-edit-order').value) : undefined,
+      xpReward: $('lesson-edit-xp').value !== '' ? Number($('lesson-edit-xp').value) : undefined,
+    };
+    try {
+      await api(`/admin/lessons/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      bootstrap.Modal.getInstance($('editLessonModal')).hide();
+      loadLevels(courseId);
+    } catch (e) { showAlert('lesson-edit-alert', e.message); }
+    finally { $('lesson-edit-spinner').classList.add('d-none'); }
+  });
 
   window.changeRole = async uid => {
     const sel = $(`role-sel-${uid}`);
     if (!sel) return;
-    const newRole = sel.value;
     try {
-      await api(`/admin/users/${uid}/role?newRole=${newRole}`, { method: 'PATCH' });
+      await api(`/admin/users/${uid}/role?newRole=${sel.value}`, { method:'PATCH' });
       loadUsers();
-    } catch (e) {
-      alert(`Failed to update role: ${e.message}`);
-    }
+    } catch (e) { alert(`Failed to update role: ${e.message}`); }
   };
+
 </script>
 </body>
 </html>

@@ -3,6 +3,7 @@ package kz.diploma.tulpar.service;
 import kz.diploma.tulpar.domain.entity.Article;
 import kz.diploma.tulpar.domain.enums.DifficultyLevel;
 import kz.diploma.tulpar.dto.request.CreateArticleRequest;
+import kz.diploma.tulpar.dto.request.UpdateArticleRequest;
 import kz.diploma.tulpar.dto.response.ArticleResponse;
 import kz.diploma.tulpar.dto.response.PageResponse;
 import kz.diploma.tulpar.exception.ResourceNotFoundException;
@@ -57,6 +58,23 @@ public class ArticleService {
                 .imageUrl(req.getImageUrl())
                 .build());
         return toResponse(saved, true);
+    }
+
+    @Caching(evict = {
+            @CacheEvict(value = "articles", allEntries = true),
+            @CacheEvict(value = "article-detail", key = "#id")
+    })
+    @Transactional
+    public ArticleResponse update(UUID id, UpdateArticleRequest req) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("Article", id));
+        if (req.getTitle() != null)           article.setTitle(req.getTitle());
+        if (req.getTitleKz() != null)         article.setTitleKz(req.getTitleKz());
+        if (req.getContent() != null)         article.setContent(req.getContent());
+        if (req.getContentKz() != null)       article.setContentKz(req.getContentKz());
+        if (req.getDifficultyLevel() != null) article.setDifficultyLevel(req.getDifficultyLevel());
+        if (req.getImageUrl() != null)        article.setImageUrl(req.getImageUrl());
+        return toResponse(articleRepository.save(article), true);
     }
 
     @Caching(evict = {

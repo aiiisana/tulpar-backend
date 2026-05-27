@@ -2,6 +2,7 @@ package kz.diploma.tulpar.service;
 
 import kz.diploma.tulpar.domain.entity.GrammarRule;
 import kz.diploma.tulpar.dto.request.CreateGrammarRuleRequest;
+import kz.diploma.tulpar.dto.request.UpdateGrammarRuleRequest;
 import kz.diploma.tulpar.dto.response.GrammarRuleResponse;
 import kz.diploma.tulpar.exception.ResourceNotFoundException;
 import kz.diploma.tulpar.repository.GrammarRuleRepository;
@@ -47,6 +48,20 @@ public class GrammarService {
                 .examples(req.getExamples() != null ? req.getExamples() : List.of())
                 .build());
         return toResponse(saved);
+    }
+
+    @Caching(evict = {
+            @CacheEvict(value = "grammar-rules", allEntries = true),
+            @CacheEvict(value = "grammar-rule-detail", key = "#id")
+    })
+    @Transactional
+    public GrammarRuleResponse update(UUID id, UpdateGrammarRuleRequest req) {
+        GrammarRule rule = repository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("GrammarRule", id));
+        if (req.getTitle() != null)       rule.setTitle(req.getTitle());
+        if (req.getExplanation() != null) rule.setExplanation(req.getExplanation());
+        if (req.getExamples() != null)    rule.setExamples(req.getExamples());
+        return toResponse(repository.save(rule));
     }
 
     @Caching(evict = {
