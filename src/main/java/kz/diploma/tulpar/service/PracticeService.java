@@ -3,10 +3,14 @@ package kz.diploma.tulpar.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kz.diploma.tulpar.config.properties.AiProperties;
+import kz.diploma.tulpar.domain.entity.PracticeMessage;
+import kz.diploma.tulpar.dto.response.PracticeHistoryItemResponse;
 import kz.diploma.tulpar.dto.response.PracticeResponse;
+import kz.diploma.tulpar.repository.PracticeMessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
@@ -16,12 +20,9 @@ import java.util.Map;
 /**
  * Conversational Kazakh practice service.
  *
- * The AI is asked to return a structured JSON response containing:
- *   - a natural Kazakh reply to the user's message
- *   - a list of grammar/vocabulary corrections (may be empty)
- *
- * Using a dedicated RestClient here (not the shared ChatService) because
- * practice sessions are stateless — we don't persist the dialogue.
+ * Each call to {@link #practice(String, String)} persists the exchange
+ * (user message + AI reply + corrections) in {@code practice_messages},
+ * so history is per-user and device-independent.
  */
 @Slf4j
 @Service
@@ -53,10 +54,14 @@ public class PracticeService {
     private final RestClient restClient;
     private final AiProperties properties;
     private final ObjectMapper objectMapper;
+    private final PracticeMessageRepository practiceMessageRepository;
 
-    public PracticeService(AiProperties properties, ObjectMapper objectMapper) {
+    public PracticeService(AiProperties properties,
+                           ObjectMapper objectMapper,
+                           PracticeMessageRepository practiceMessageRepository) {
         this.properties = properties;
         this.objectMapper = objectMapper;
+        this.practiceMessageRepository = practiceMessageRepository;
 
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(10_000);
@@ -70,22 +75,97 @@ public class PracticeService {
                 .build();
     }
 
-    public PracticeResponse practice(String userText) {
+    // ─── Public API ───────────────────────────────────────────────────────────
+
+    /**
+     * Sends the user's text to the AI and persists the full exchange.
+     * History is tied to {@code userId} (Firebase UID).
+     */
+    @Transactional
+    public PracticeResponse practice(String userId, String userText) {
         String apiKey = properties.getApiKey();
+        PracticeResponse response;
+
         if (apiKey == null || apiKey.isBlank() || apiKey.startsWith("${")) {
             log.warn("[Practice] API key not configured — returning stub");
-            return stub(userText);
+            response = stub();
+        } else {
+            response = callAi(userText);
         }
 
+        // Persist exchange regardless of outcome
+        saveExchange(userId, userText, response);
+        return response;
+    }
+
+    /** Returns the last 100 exchanges for a user, oldest-first. */
+    @Transactional(readOnly = true)
+    public List<PracticeHistoryItemResponse> getHistory(String userId) {
+        return practiceMessageRepository
+                .findTop100ByUserIdOrderByCreatedAtAsc(userId)
+                .stream()
+                .map(this::toHistoryItem)
+                .toList();
+    }
+
+    /** Deletes all practice messages for a user. */
+    @Transactional
+    public void clearHistory(String userId) {
+        practiceMessageRepository.deleteAllByUserId(userId);
+    }
+
+    // ─── Persistence helper ───────────────────────────────────────────────────
+
+    private void saveExchange(String userId, String userText, PracticeResponse response) {
+        try {
+            String correctionsJson = objectMapper.writeValueAsString(response.getCorrections());
+            practiceMessageRepository.save(
+                    PracticeMessage.builder()
+                            .userId(userId)
+                            .userText(userText)
+                            .aiReply(response.getReply())
+                            .hasErrors(response.isHasErrors())
+                            .corrections(correctionsJson)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("[Practice] Failed to persist exchange for user={}: {}", userId, e.getMessage());
+        }
+    }
+
+    private PracticeHistoryItemResponse toHistoryItem(PracticeMessage msg) {
+        List<PracticeResponse.Correction> corrections;
+        try {
+            corrections = objectMapper.readValue(
+                    msg.getCorrections(),
+                    new TypeReference<List<PracticeResponse.Correction>>() {}
+            );
+        } catch (Exception e) {
+            corrections = List.of();
+        }
+
+        return PracticeHistoryItemResponse.builder()
+                .id(msg.getId())
+                .userText(msg.getUserText())
+                .aiReply(msg.getAiReply())
+                .hasErrors(msg.isHasErrors())
+                .corrections(corrections)
+                .createdAt(msg.getCreatedAt())
+                .build();
+    }
+
+    // ─── AI call ──────────────────────────────────────────────────────────────
+
+    private PracticeResponse callAi(String userText) {
         List<Map<String, String>> messages = List.of(
                 Map.of("role", "system", "content", SYSTEM_PROMPT),
                 Map.of("role", "user",   "content", userText)
         );
 
         Map<String, Object> requestBody = Map.of(
-                "model",      properties.getModel(),
-                "messages",   messages,
-                "max_tokens", 512,
+                "model",       properties.getModel(),
+                "messages",    messages,
+                "max_tokens",  512,
                 "temperature", 0.5
         );
 
@@ -97,8 +177,7 @@ public class PracticeService {
                     .retrieve()
                     .body(Map.class);
 
-            String content = extractContent(response);
-            return parseJson(content);
+            return parseJson(extractContent(response));
 
         } catch (Exception e) {
             log.error("[Practice] AI call failed: {}", e.getMessage());
@@ -120,7 +199,6 @@ public class PracticeService {
     }
 
     private PracticeResponse parseJson(String json) {
-        // Strip markdown code fences if model adds them despite instructions
         String cleaned = json
                 .replaceAll("(?s)^```[a-z]*\\s*", "")
                 .replaceAll("(?s)\\s*```$", "")
@@ -151,7 +229,6 @@ public class PracticeService {
 
         } catch (Exception e) {
             log.warn("[Practice] JSON parse failed, raw={}", json, e);
-            // Return the raw text as reply with no corrections
             return PracticeResponse.builder()
                     .reply(json)
                     .hasErrors(false)
@@ -160,7 +237,7 @@ public class PracticeService {
         }
     }
 
-    private PracticeResponse stub(String userText) {
+    private PracticeResponse stub() {
         return PracticeResponse.builder()
                 .reply("Кешіріңіз, AI кілті орнатылмаған. / AI key not configured.")
                 .hasErrors(false)
