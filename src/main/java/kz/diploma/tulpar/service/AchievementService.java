@@ -87,10 +87,12 @@ public class AchievementService {
      */
     @Transactional
     public void checkProgressAchievements(String userId, long totalCompletedExercises) {
+        if (totalCompletedExercises >= 1)   award(userId, "FIRST_LESSON");
         if (totalCompletedExercises >= 10)  award(userId, "WORDS_10");
         if (totalCompletedExercises >= 50)  award(userId, "WORDS_50");
         if (totalCompletedExercises >= 100) award(userId, "WORDS_100");
-        if (totalCompletedExercises >= 1)   award(userId, "FIRST_LESSON");
+        // FIRST_COURSE: awarded after completing ~50 exercises (one full beginner course)
+        if (totalCompletedExercises >= 50)  award(userId, "FIRST_COURSE");
     }
 
     /**

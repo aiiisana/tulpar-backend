@@ -1,8 +1,8 @@
 package kz.diploma.tulpar.service;
 
 import kz.diploma.tulpar.domain.entity.DailyChallenge;
-import kz.diploma.tulpar.domain.entity.UserDailyActivity;
 import kz.diploma.tulpar.domain.entity.User;
+import kz.diploma.tulpar.domain.entity.UserDailyActivity;
 import kz.diploma.tulpar.dto.request.CreateDailyChallengeRequest;
 import kz.diploma.tulpar.dto.response.DailyChallengeResponse;
 import kz.diploma.tulpar.dto.response.DailyChallengeSubmitResponse;
@@ -28,6 +28,7 @@ public class DailyChallengeService {
     private final UserDailyActivityRepository activityRepository;
     private final UserRepository userRepository;
     private final StreakService streakService;
+    private final AchievementService achievementService;
 
     /**
      * Returns today's challenge. When {@code userId} is non-null (authenticated user),
@@ -105,6 +106,17 @@ public class DailyChallengeService {
                 streakService.recordActivityAndAddXp(userId, CHALLENGE_XP);
                 markChallengeCompleted(userId, today);
                 xpAwarded = CHALLENGE_XP;
+
+                // Award FIRST_DAILY on any first-time completion
+                achievementService.award(userId, "FIRST_DAILY");
+
+                // Award DAILY_7 if the user has completed daily challenge 7+ days in the last 7 days
+                long challengeDaysInWeek = activityRepository
+                        .countByUserIdAndActivityDateBetweenAndChallengeCompletedTrue(
+                                userId, today.minusDays(6), today);
+                if (challengeDaysInWeek >= 7) {
+                    achievementService.award(userId, "DAILY_7");
+                }
             }
         }
 

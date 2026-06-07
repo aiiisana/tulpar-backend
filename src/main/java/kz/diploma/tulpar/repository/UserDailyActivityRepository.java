@@ -17,4 +17,8 @@ public interface UserDailyActivityRepository extends JpaRepository<UserDailyActi
 
     /** True only if the user specifically completed the daily challenge on the given date. */
     boolean existsByUserIdAndActivityDateAndChallengeCompletedTrue(String userId, LocalDate date);
+
+    /** Count days with challenge_completed=true in a date range — used for DAILY_7 achievement. */
+    long countByUserIdAndActivityDateBetweenAndChallengeCompletedTrue(
+            String userId, LocalDate from, LocalDate to);
 }
